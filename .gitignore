@@ -1,0 +1,20 @@
+# Seguridad
+.env
+
+# Imágenes de productos subidas por usuarios
+assets/img/pan_*
+
+# Caché del dashboard
+admin/cache/
+
+# Logs del servidor
+*.log
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,3 @@
+﻿# Bloquear acceso HTTP a todos los scripts de desarrollo
+Order allow,deny
+Deny from all

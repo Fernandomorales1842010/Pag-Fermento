@@ -1,0 +1,32 @@
+/* Tarjeta individual de producto */
+.product-card {
+    background: var(--white);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s;
+}
+
+/* Efecto hover para la tarjeta de producto */
+.product-card:hover {
+    transform: translateY(-10px);
+}
+
+/* Contenedor de imagen dentro de la tarjeta de producto */
+.card-img {
+    height: 250px;
+    background-size: cover;
+    background-position: center;
+}
+
+/* Contenedor de información dentro de la tarjeta */
+.card-info {
+    padding: 25px;
+    text-align: center;
+}
+
+/* Título del producto en la tarjeta */
+.card-info h3 {
+    margin-bottom: 10px;
+    color: var(--accent-toast);
+}

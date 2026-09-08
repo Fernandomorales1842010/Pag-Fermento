@@ -1,0 +1,8 @@
+/* Pie de página */
+footer {
+    background-color: var(--text-black);
+    color: var(--bg-cream);
+    text-align: center;
+    padding: 30px;
+    margin-top: 50px;
+}

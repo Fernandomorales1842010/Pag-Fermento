@@ -1,0 +1,15 @@
+/* Reset básico para eliminar margenes y padding por defecto */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    scroll-behavior: smooth;
+}
+
+/* Estilos base para el cuerpo del documento */
+body {
+    background-color: var(--bg-cream);
+    color: var(--text-black);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+}

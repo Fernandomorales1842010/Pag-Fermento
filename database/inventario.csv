@@ -1,0 +1,30 @@
+Categoría,Producto,Códigos,Descripción para E-commerce,Precio de Venta (PV)
+DULCE,Línea de Pies (Queso y Piña),PQ05.1 / PP05.2,"Deliciosa concha de pie horneada a la perfección, disponible en dos clásicos y exquisitos rellenos: queso tradicional o mermelada de piña.",Q 8.00 - Q 10.00
+DULCE,"Línea de Strudels (Piña, Fresa y Manjar)",S04.H2.1 / C03.1j / S04.H2.2,"Delicada y escamosa pasta de hojaldre con cobertura de azúcar, disponible con abundantes rellenos a tu elección: mermelada de piña, mermelada de fresa o tradicional manjar.",Q 7.00 - Q 8.00
+DULCE,Línea de Donas (Múltiples variedades),DACH12.1,"Suave dona disponible con diferentes coberturas (chocolate clásico, chocolate blanco o glaseado de fresa), y exquisitas decoraciones que incluyen coco, anicillos y manía.",Q 9.00 - Q 10.00
+DULCE,Croissant simple,CO3,"Clásico croissant hecho con fina pasta de hojaldre semidulce sin relleno, ideal para acompañar tus bebidas favoritas.",Q 7.00 - Q 8.00
+DULCE,Milhojas,S04.H2.2,"Postre icónico de capas de hojaldre relleno de abundante manjar, decorado con cobertura de azúcar.",Q 9.00 - Q 10.00
+DULCE,Pañuelo de manzana,C03,Suave pañuelo de hojaldre relleno de deliciosa mermelada de fresa y finalizado con cobertura de azúcar.,Q 7.00 - Q 8.00
+DULCE,Muffin de vainilla con chispas de chocolate,MV07.1,"Un bizcocho increíblemente esponjoso con rico sabor a vainilla, deliciosamente decorado con chispas de chocolate.",Q 7.00 - Q 8.00
+DULCE,Galletas con chispas de chocolate,G08,La galleta perfecta: de textura crujiente y generosamente elaborada con chispas de chocolate.,Q 5.00 - Q 5.50
+DULCE,Enrollado de fresa,G08,Postre crujiente elaborado como una deliciosa galleta con chispas de chocolate.,Q 15.00
+DULCE,Champurradas,CH06.1,"El clásico para compartir. Auténticas galletas crujientes y tostadas, realzadas con un exquisito toque de ajonjolí.",Q 12.00 - Q 13.00
+DULCE,Churros,CH06.2,"Deliciosos churros tostados y crujientes al morder, terminados con una dulce cobertura de azúcar.",Q 12.00 - Q 13.00
+SALADO,Empanada de pollo,E04.H1,"Empanada elaborada con crujiente pasta de hojaldre en forma de media luna, que envuelve un sabroso relleno de ensalada de pollo.",Q 10.00 - Q 12.00
+SALADO,Volován de carne,VC04.H3,"Un bocado perfecto de pasta de hojaldre ligero y crujiente, generosamente rellena de carne muy bien sazonada.",Q 11.00 - Q 12.00
+SALADO,Croissant de Jamón y queso,C03.1j,"Increíble croissant de fina pasta de hojaldre semidulce, con un clásico relleno salado de jamón y queso.",Q 12.00 - Q 13.00
+PANADERÍA,Bollo,BOL.09,"Delicioso pan de corteza fina con una miga interior compacta y esponjosa, decorado por encima con semillas de ajonjolí.",Q 18.00
+PANADERÍA,Baguette,B02,"Pan francés alargado artesanal de 4 onzas, con una miga muy suave y porosa, y una cubierta nutritiva de ajonjolí, pepitoria y chía.",Q 9.00
+PANADERÍA,Francés,F01,"El infaltable pan tradicional, horneado para lograr una corteza dorada y crujiente que contrasta con su miga maravillosamente suave y ligera.",Q 5.00
+PANADERÍA,Trenza,TRE10,"Hermoso pan trenzado de sabor semidulce, que presenta una textura suave, esponjosa y una corteza ligeramente dorada cubierta con semillas de ajonjolí.",Q 25.00
+PANADERÍA,Concha Mexicana,CON11,Tradicional pan dulce cuya miga extra suave y esponjosa se complementa de maravilla con su característica y deliciosa costra azucarada.,Q 18.00
+SALADO,Pan de hamburguesa brioche (Caja 45 U.),B.H14.1,"Bollo premium de masa madre suave y ligero. Elaborado con mantequilla y huevo para una miga esponjosa, terminado con una atractiva corteza brillante cubierta de ajonjolí.",Q 8.50
+SALADO,Pan de hamburguesa brioche (Caja 90 U.),B.H14.1,"Bollo premium de masa madre suave y ligero. Elaborado con mantequilla y huevo para una miga esponjosa, terminado con una atractiva corteza brillante cubierta de ajonjolí.",Q 7.50
+SALADO,Pan de hot dog brioche (Caja 45 U.),B.HOT 14.2,"Sofisticado pan alargado de masa madre, con una textura muy suave y ligera gracias a su formulación con mantequilla y huevo, coronado con una corteza brillante.",Q 8.50
+SALADO,Pan de hot dog brioche (Caja 90 U.),B.HOT 14.2,"Sofisticado pan alargado de masa madre, con una textura muy suave y ligera gracias a su formulación con mantequilla y huevo, coronado con una corteza brillante.",Q 7.50
+SALADO,Pan de papa hamburguesa (Caja 45 U.),B.HAM14.1.1,"Delicioso pan de masa madre caracterizado por ser muy suave, húmedo y de un llamativo color dorado; su receta incorpora papa para balancear su sabor y lograr una miga delicada.",Q 9.50
+SALADO,Pan de papa hamburguesa (Caja 90 U.),B.HAM14.1.1,"Delicioso pan de masa madre caracterizado por ser muy suave, húmedo y de un llamativo color dorado; su receta incorpora papa para balancear su sabor y lograr una miga delicada.",Q 8.50
+SALADO,Pan de papa hot dog (Caja 45 U.),B.HOT.PA 14.2.1,"Un irresistible pan alargado a base de masa madre que incorpora papa en su formulación, dándole una miga extremadamente tierna, húmeda y de suave textura.",Q 9.50
+SALADO,Pan de papa hot dog (Caja 90 U.),B.HOT.PA 14.2.1,"Un irresistible pan alargado a base de masa madre que incorpora papa en su formulación, dándole una miga extremadamente tierna, húmeda y de suave textura.",Q 8.50
+SALADO,Pan de molde brioche,B.MOL.14.3,"Pan artesanal de masa madre en corte rectangular, profundamente enriquecido con mantequilla, leche y huevo, lo que resulta en una miga súper esponjosa y una corteza suave.",Q 30.00
+SALADO,Grissini,B.HOT 14.2,"Delgados y apetitosos palitos de pan, perfectamente horneados hasta lograr una textura dorada y crujiente, sazonados con un toque de hierbas y estilo italiano.",Q 18.00

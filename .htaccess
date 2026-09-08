@@ -1,0 +1,42 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# .htaccess — Fermento Security Rules
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ── 1. Bloquear acceso directo a archivos de desarrollo y utilidades ──────────
+# Estos archivos solo deben ejecutarse localmente desde CLI o interfaz admin.
+# Ningún visitante web debe poder acceder a ellos.
+
+# (La protección de scripts de desarrollo ahora se maneja en scripts/.htaccess)
+
+
+# ── 2. Bloquear acceso a archivos de entorno y configuración sensibles ────────
+<FilesMatch "^\.env">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# ── 3. Bloquear acceso a archivos de inventario/datos crudos ─────────────────
+<FilesMatch "\.(csv|sql|log)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# ── 4. Cabeceras de seguridad HTTP ────────────────────────────────────────────
+<IfModule mod_headers.c>
+    # Evitar que el navegador "adivine" el tipo MIME
+    Header always set X-Content-Type-Options "nosniff"
+    # Evitar clickjacking
+    Header always set X-Frame-Options "SAMEORIGIN"
+    # Protección XSS básica para navegadores antiguos
+    Header always set X-XSS-Protection "1; mode=block"
+    # No enviar Referer a sitios externos
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ── 5. Ocultar versión de PHP y servidor ─────────────────────────────────────
+<IfModule mod_php.c>
+    php_flag expose_php Off
+</IfModule>
+
+# ── 6. Evitar listado de directorios ─────────────────────────────────────────
+Options -Indexes

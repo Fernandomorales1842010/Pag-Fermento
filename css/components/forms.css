@@ -1,0 +1,40 @@
+/* Formulario Contacto */
+
+/* Contenedor del formulario de contacto */
+.contact-form {
+    background: var(--white);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+/* Grupo de campos del formulario */
+.form-group {
+    margin-bottom: 20px;
+}
+
+/* Etiquetas de los campos del formulario */
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Estilos para inputs y textareas */
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: var(--bg-cream);
+    font-family: inherit;
+}
+
+/* Estado focus para inputs y textareas */
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent-toast);
+}

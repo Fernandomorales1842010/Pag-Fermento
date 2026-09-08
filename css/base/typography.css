@@ -1,0 +1,15 @@
+/* Tipografía y Utilidades */
+
+/* Estilos para encabezados h1, h2, h3 */
+h1,
+h2,
+h3 {
+    font-family: var(--font-serif);
+    font-weight: 700;
+}
+
+/* Estilos base para enlaces */
+a {
+    text-decoration: none;
+    color: inherit;
+}

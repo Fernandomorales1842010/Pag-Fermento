@@ -1,0 +1,10 @@
+/* Definición de variables globales para colores y tipografías */
+:root {
+    --bg-cream: #F9F7F2;
+    --text-black: #1F1F1F;
+    --accent-toast: #b5a28f;
+    --accent-toast-dark: #b5a28f;
+    --white: #ffffff;
+    --font-serif: 'Merriweather', serif;
+    --font-sans: 'Poppins', sans-serif;
+}

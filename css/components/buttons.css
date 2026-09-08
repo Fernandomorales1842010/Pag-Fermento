@@ -1,0 +1,80 @@
+/* Botones */
+
+/* Botón primario con fondo oscuro y texto claro */
+.btn-primary {
+    background-color: var(--text-black);
+    color: var(--bg-cream);
+    padding: 12px 30px;
+    border-radius: 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+/* Efecto hover para el botón primario */
+.btn-primary:hover {
+    background-color: var(--accent-toast);
+    transform: translateY(-3px);
+}
+
+/* Botón secundario con borde y fondo transparente */
+.btn-secondary {
+    border: 2px solid var(--text-black);
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    background: transparent;
+    transition: 0.3s;
+}
+
+/* Efecto hover para el botón secundario */
+.btn-secondary:hover {
+    background: var(--text-black);
+    color: var(--white);
+}
+
+/* Botón primario invertido (fondo blanco, texto color acento) */
+.btn-primary-invert {
+    background-color: var(--white);
+    color: var(--accent-toast);
+    padding: 12px 30px;
+    border-radius: 30px;
+    font-weight: 600;
+    display: inline-block;
+    margin-top: 20px;
+    transition: 0.3s;
+}
+
+/* Efecto hover para el botón invertido */
+.btn-primary-invert:hover {
+    background-color: var(--text-black);
+    color: var(--white);
+}
+
+/* Botón específico dentro de la navegación */
+.btn-nav {
+    border: 1px solid var(--text-black);
+    padding: 8px 20px;
+    border-radius: 20px;
+}
+
+/* Botón de compra por WhatsApp */
+.btn-whatsapp {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background-color: #25D366;
+    color: white;
+    padding: 12px;
+    border-radius: 30px;
+    font-weight: 600;
+    transition: 0.3s;
+    margin-bottom: 40px;
+}
+
+/* Efecto hover en botón de WhatsApp */
+.btn-whatsapp:hover {
+    background-color: #1ebc57;
+    box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
+}

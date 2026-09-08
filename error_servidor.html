@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error del Servidor | Fermento</title>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700;900&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #fdf8f3;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .error-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            max-width: 520px;
+            width: 100%;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .error-header {
+            background: linear-gradient(135deg, #1F1F1F 0%, #2d2d2d 100%);
+            padding: 40px 30px 30px;
+            position: relative;
+        }
+
+        .brand {
+            font-family: 'Merriweather', serif;
+            font-size: 1.4rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            color: #D98C45;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .error-icon {
+            width: 72px;
+            height: 72px;
+            background: rgba(217,140,69,0.15);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            border: 2px solid rgba(217,140,69,0.3);
+        }
+
+        .error-body {
+            padding: 36px 32px 40px;
+        }
+
+        .error-title {
+            font-family: 'Merriweather', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1F1F1F;
+            margin-bottom: 12px;
+        }
+
+        .error-desc {
+            font-size: 0.92rem;
+            color: #666;
+            line-height: 1.75;
+            margin-bottom: 28px;
+        }
+
+        .error-code {
+            display: inline-block;
+            background: #f4f4f4;
+            color: #999;
+            font-size: 0.78rem;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-bottom: 28px;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-retry {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #D98C45;
+            color: white;
+            text-decoration: none;
+            padding: 13px 28px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: background 0.2s, transform 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-retry:hover {
+            background: #c07a38;
+            transform: translateY(-2px);
+        }
+
+        .contact-line {
+            margin-top: 24px;
+            font-size: 0.82rem;
+            color: #aaa;
+        }
+        .contact-line a {
+            color: #D98C45;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .contact-line a:hover { text-decoration: underline; }
+
+        /* Countdown para auto-retry */
+        #countdown { font-weight: 700; color: #D98C45; }
+
+        @media (max-width: 480px) {
+            .error-body { padding: 28px 20px 32px; }
+            .error-title { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="error-card">
+
+    <div class="error-header">
+        <span class="brand">FERMENTO</span>
+        <div class="error-icon">🔧</div>
+    </div>
+
+    <div class="error-body">
+        <div class="error-code">ERROR 503 — Servicio no disponible</div>
+
+        <h1 class="error-title">Estamos haciendo mantenimiento</h1>
+
+        <p class="error-desc">
+            Nuestro servidor está teniendo un problema técnico momentáneo.<br>
+            No te preocupes — <strong>tu carrito y tus pedidos están seguros</strong>.<br><br>
+            Intenta de nuevo en unos minutos o contáctanos directamente por WhatsApp.
+        </p>
+
+        <a href="javascript:window.location.reload()" class="btn-retry">
+            ↻ Reintentar ahora
+        </a>
+
+        <p class="contact-line">
+            ¿Urgente? Escríbenos directo en 
+            <a href="https://wa.me/50249420696" target="_blank">WhatsApp</a>
+        </p>
+
+        <p class="contact-line" style="margin-top:16px;">
+            Reintentando automáticamente en <span id="countdown">30</span> s…
+        </p>
+    </div>
+
+</div>
+
+<script>
+    // Auto-retry countdown
+    let secs = 30;
+    const el = document.getElementById('countdown');
+    const timer = setInterval(() => {
+        secs--;
+        if (el) el.textContent = secs;
+        if (secs <= 0) {
+            clearInterval(timer);
+            window.location.reload();
+        }
+    }, 1000);
+</script>
+
+</body>
+</html>

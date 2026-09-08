@@ -1,0 +1,85 @@
+/* Hero Section */
+
+/* Sección principal Hero con imagen de fondo y gradiente */
+.hero {
+    height: 100vh;
+    background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=1920&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--bg-cream);
+}
+
+/* Título principal dentro del Hero */
+.hero-content h1 {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Párrafo descriptivo dentro del Hero */
+.hero-content p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    font-weight: 300;
+}
+
+/* Grid contenedor para mostrar productos */
+.grid-products {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+/* Banner Oferta */
+
+/* Sección de banner promocional */
+.banner-offer {
+    background-color: var(--accent-toast);
+    color: var(--white);
+    text-align: center;
+    padding: 60px 20px;
+}
+
+/* Grid para la sección de contacto (formulario e info) */
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    align-items: center;
+}
+
+/* Información de contacto (texto e iconos) */
+.contact-info p {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Caja destacada con información adicional */
+.info-box {
+    background: var(--text-black);
+    color: var(--bg-cream);
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 30px;
+}
+
+/* Responsive Home */
+@media (max-width: 768px) {
+
+    /* Cambia el grid de contacto a una sola columna */
+    .contact-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Ajusta el tamaño del título del hero en móviles */
+    .hero-content h1 {
+        font-size: 2.5rem;
+    }
+}
