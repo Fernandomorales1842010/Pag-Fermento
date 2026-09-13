@@ -24,6 +24,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_SESSION['carrito'])) {
 
     $zona_envio_id = isset($_POST['zona_envio_id']) ? (int)$_POST['zona_envio_id'] : null;
     $metodo_contacto = ($zona_envio_id === 0) ? 'whatsapp' : 'normal';
+
+    // F1: Fecha y hora de entrega programada
+    $fecha_envio = !empty($_POST['fecha_envio_programada']) ? trim($_POST['fecha_envio_programada']) : null;
+    $hora_envio  = !empty($_POST['hora_envio_programada'])  ? trim($_POST['hora_envio_programada'])  : null;
+    // Validar formato (YYYY-MM-DD y HH:MM)
+    if ($fecha_envio && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_envio)) $fecha_envio = null;
+    if ($hora_envio  && !preg_match('/^\d{2}:\d{2}$/', $hora_envio))         $hora_envio  = null;
+
     
     // Calcular costo de envío: primero busca el costo propio de la zona, si no usa el global
     $costo_envio = 0;
@@ -64,13 +72,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_SESSION['carrito'])) {
         exit;
     }
 
-    // VALIDACIÓN DE MÍNIMOS DE COMPRA (defensa server-side)
+    // VALIDACIÓN DE MÍNIMOS DE COMPRA COMBINADO (defensa server-side)
     $errores_minimo = [];
+    $cantidadesPorProducto = [];
     foreach ($_SESSION['carrito'] as $item) {
-        $min = isset($item['minimo_compra']) ? (int)$item['minimo_compra'] : 1;
+        $pId = $item['id'];
+        $cantidadesPorProducto[$pId] = ($cantidadesPorProducto[$pId] ?? 0) + $item['cantidad'];
+    }
+
+    foreach ($_SESSION['carrito'] as $item) {
+        $pId = $item['id'];
+        $min = isset($item['minimo_compra_padre']) ? (int)$item['minimo_compra_padre'] : (isset($item['minimo_compra']) ? (int)$item['minimo_compra'] : 1);
         if ($min < 1) $min = 1;
-        if ($item['cantidad'] < $min) {
-            $errores_minimo[] = htmlspecialchars($item['nombre']) . " (mínimo: $min, tienes: {$item['cantidad']})";
+        
+        $sumaCombinada = $cantidadesPorProducto[$pId];
+        if ($sumaCombinada < $min) {
+            $nombreBase = explode(' (', $item['nombre'])[0];
+            $errores_minimo[$pId] = htmlspecialchars($nombreBase) . " (mínimo combinado: $min, tienes: $sumaCombinada)";
         }
     }
     if (!empty($errores_minimo)) {
@@ -99,11 +117,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_SESSION['carrito'])) {
     try {
         $pdo->beginTransaction();
 
-        // 1. INSERTAR EN PEDIDOS
-        $sql = "INSERT INTO pedidos (usuario_id, nombre_cliente, direccion_envio, notas, telefono, subtotal, descuento, cupon_id, cupon_codigo, costo_envio, total, zona_envio_id, metodo_contacto) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        // 1. INSERTAR EN PEDIDOS (incluye fecha+hora de entrega programada — F1)
+        $sql = "INSERT INTO pedidos (usuario_id, nombre_cliente, direccion_envio, notas, telefono,
+                subtotal, descuento, cupon_id, cupon_codigo, costo_envio, total,
+                zona_envio_id, metodo_contacto, fecha_envio_programada, hora_envio_programada)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$uid, $nombre, $dir, $notas, $tel, $subtotal, $descuento, $cupon_id, $cupon_codigo, $costo_envio, $total, $zona_envio_id, $metodo_contacto]);
+        $stmt->execute([$uid, $nombre, $dir, $notas, $tel, $subtotal, $descuento,
+                        $cupon_id, $cupon_codigo, $costo_envio, $total,
+                        $zona_envio_id, $metodo_contacto,
+                        $fecha_envio, $hora_envio]);
         $pedido_id = $pdo->lastInsertId();
 
         // 2. INSERTAR DETALLES Y RESTAR STOCK ATÓMICAMENTE

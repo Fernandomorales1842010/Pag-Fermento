@@ -30,9 +30,51 @@ $host = $_SERVER['HTTP_HOST'];
 $base_dir = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
 $url_recibo = "{$protocol}://{$host}{$base_dir}/recibo.php?id={$pedido['id']}&token={$token}";
 
-$msj = "¡Hola! Acabo de hacer el pedido #{$pedido['id']} en la tienda en línea.\n\n";
-$msj .= "Aquí está mi recibo oficial validado por el sistema para coordinar el pago y la entrega:\n";
-$msj .= $url_recibo;
+// Obtener el nombre de la zona
+$zona_nombre = "Envío a domicilio";
+if (!empty($pedido['zona_envio_id'])) {
+    $stmtZ = $pdo->prepare("SELECT nombre FROM zonas_envio WHERE id = ?");
+    $stmtZ->execute([$pedido['zona_envio_id']]);
+    $z = $stmtZ->fetchColumn();
+    if ($z) $zona_nombre = $z;
+} elseif ($pedido['zona_envio_id'] === 0 || $pedido['zona_envio_id'] === '0') {
+    $zona_nombre = "Recoger en tienda (whatsapp)";
+}
+
+// ── Construir mensaje completo y automático ──────────────────────────────
+$nombreCliente = explode(' ', $pedido['nombre_cliente'])[0];
+$msj  = "🍞 *Nuevo Pedido Fermento #" . str_pad($pedido['id'], 6, '0', STR_PAD_LEFT) . "*\n";
+$msj .= "────────────────────────\n";
+$msj .= "👤 *Cliente:* " . $pedido['nombre_cliente'] . "\n";
+$msj .= "📞 *Tel:* " . $pedido['telefono'] . "\n";
+$msj .= "📍 *Dirección:* " . $pedido['direccion'] . "\n";
+$msj .= "🚚 *Zona:* " . $zona_nombre . "\n";
+
+// Fecha y hora de entrega programada
+if (!empty($pedido['fecha_envio_programada'])) {
+    $msj .= "📅 *Entrega programada:* " . date('d/m/Y', strtotime($pedido['fecha_envio_programada']));
+    if (!empty($pedido['hora_envio_programada'])) {
+        list($hh, $mm) = explode(':', $pedido['hora_envio_programada']);
+        $h12 = ((int)$hh % 12 ?: 12) . ':' . $mm . ((int)$hh < 12 ? ' AM' : ' PM');
+        $msj .= " a las " . $h12;
+    }
+    $msj .= "\n";
+}
+
+// Detalle de productos
+$msj .= "────────────────────────\n";
+$msj .= "🛒 *Detalle del pedido:*\n";
+foreach ($detalles as $d) {
+    $msj .= "  • " . $d['cantidad'] . "x " . $d['nombre_producto'];
+    $msj .= " — Q" . number_format($d['precio_unitario'] * $d['cantidad'], 2) . "\n";
+}
+$msj .= "────────────────────────\n";
+$msj .= "💰 *Subtotal:* Q" . number_format($pedido['subtotal'], 2) . "\n";
+$msj .= "🚚 *Envío:* " . ($pedido['zona_envio_id'] === null ? 'A coordinar' : 'Q' . number_format($pedido['costo_envio'], 2)) . "\n";
+$msj .= "✅ *TOTAL A PAGAR: Q" . number_format($pedido['total'], 2) . "*\n";
+
+// Recibo online
+$msj .= "\n🧾 Ver recibo validado:\n" . $url_recibo;
 
 $telefono_ws = getConfig('whatsapp_numero', '50239754421');
 $link_ws = "https://wa.me/{$telefono_ws}?text=" . urlencode($msj);
@@ -157,6 +199,12 @@ $link_ws = "https://wa.me/{$telefono_ws}?text=" . urlencode($msj);
         font-size: 1.1rem;
         box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
         transition: transform 0.2s;
+        animation: pulseWs 2s infinite;
+    }
+    @keyframes pulseWs {
+        0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+        70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
     }
     .btn-ws-large:hover {
         transform: translateY(-3px);
@@ -226,7 +274,7 @@ $link_ws = "https://wa.me/{$telefono_ws}?text=" . urlencode($msj);
             </p>
             
             <a href="<?php echo $link_ws; ?>" target="_blank" class="btn-ws-large">
-                <i class="fab fa-whatsapp" style="font-size: 1.4rem;"></i> Finalizar en WhatsApp
+                <i class="fab fa-whatsapp" style="font-size: 1.4rem;"></i> Continuar en WhatsApp
             </a>
 
             <div class="secondary-actions">

@@ -17,6 +17,16 @@ $uid = $_SESSION['user_id'];
 $stmt = $pdo->prepare("SELECT * FROM pedidos WHERE usuario_id = ? ORDER BY fecha DESC");
 $stmt->execute([$uid]);
 $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Precargar historiales para los pedidos en pendiente_confirmacion
+$historiales = [];
+foreach ($pedidos as $p) {
+    if ($p['estado'] === 'pendiente_confirmacion') {
+        $st_h = $pdo->prepare("SELECT * FROM pedido_historial WHERE pedido_id = ? ORDER BY id DESC LIMIT 1");
+        $st_h->execute([$p['id']]);
+        $historiales[$p['id']] = $st_h->fetch(PDO::FETCH_ASSOC);
+    }
+}
 ?>
 
 <style>
@@ -138,61 +148,104 @@ $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <?php if(count($pedidos) > 0): ?>
 
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
-                <thead>
-                    <tr style="background: #f4f4f4; text-align: left;">
-                        <th style="padding: 15px;"># Orden</th>
-                        <th style="padding: 15px;">Fecha</th>
-                        <th style="padding: 15px;">Dirección</th>
-                        <th style="padding: 15px;">Total</th>
-                        <th style="padding: 15px;">Estado</th>
-                        <th style="padding: 15px;"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach($pedidos as $p):
-                        $est         = strtolower($p['estado']);
-                        $color       = ($est=='completado') ? '#d4edda' : (($est=='cancelado') ? '#f8d7da' : '#fff3cd');
-                        $txtColor    = ($est=='completado') ? '#155724' : (($est=='cancelado') ? '#721c24' : '#856404');
-                        $esPendiente = ($est === 'pendiente');
+        <div style="display:flex; flex-direction:column; gap:20px;">
+            <?php foreach($pedidos as $p):
+                $est = strtolower($p['estado']);
+                $esPendiente = ($est === 'pendiente');
+                
+                // Mapeo del flujo para el timeline
+                // Pasos: pendiente -> preparando -> en_camino -> completado
+                $pasos = [
+                    'pendiente'  => ['label' => '📋 Recibido', 'idx' => 0],
+                    'preparando' => ['label' => '🧑‍🍳 Preparando', 'idx' => 1],
+                    'en_camino'  => ['label' => '🚚 En Camino', 'idx' => 2],
+                    'completado' => ['label' => '✅ Completado', 'idx' => 3],
+                ];
+                $pasoActualIdx = isset($pasos[$est]) ? $pasos[$est]['idx'] : -1;
+            ?>
+                <div id="card-pedido-<?php echo $p['id']; ?>" style="background: white; border-radius: 12px; border: 1px solid #eee; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #f4f4f4; padding-bottom: 15px; margin-bottom: 15px; flex-wrap:wrap; gap:10px;">
+                        <div>
+                            <h3 style="margin:0; font-family:'Merriweather'; color:var(--accent-toast);">Pedido #<?php echo $p['id']; ?></h3>
+                            <div style="font-size:0.85rem; color:#888; margin-top:5px;">
+                                <i class="fas fa-calendar"></i> <?php echo date('d/m/Y', strtotime($p['fecha'])); ?>
+                                &nbsp;|&nbsp;
+                                <strong>Total:</strong> Q<?php echo number_format($p['total'], 2); ?>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <a href="detalle_orden.php?id=<?php echo $p['id']; ?>" class="btn-mini" style="text-decoration:none;">Ver Detalle</a>
+                            <?php if($esPendiente): ?>
+                            <button class="btn-cancelar-pedido" id="btn-cancelar-<?php echo $p['id']; ?>" onclick="abrirModal(<?php echo $p['id']; ?>)">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <?php if ($est === 'pendiente_confirmacion'): 
+                        $hist = $historiales[$p['id']] ?? null;
                     ?>
-                        <tr id="fila-pedido-<?php echo $p['id']; ?>" style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 15px;"><strong>#<?php echo $p['id']; ?></strong></td>
-                            <td style="padding: 15px;"><?php echo date('d/m/Y', strtotime($p['fecha'])); ?></td>
-                            <td style="padding: 15px; font-size: 0.9rem; color: #666;">
-                                <?php
-                                    $dir = $p['direccion_envio'];
-                                    echo htmlspecialchars(strlen($dir) > 30 ? substr($dir, 0, 30) . '...' : $dir);
-                                ?>
-                            </td>
-                            <td style="padding: 15px; font-weight: bold; color: var(--accent-toast);">
-                                Q<?php echo number_format($p['total'], 2); ?>
-                            </td>
-                            <td style="padding: 15px;">
-                                <span id="badge-<?php echo $p['id']; ?>"
-                                      style="background: <?php echo $color; ?>; color: <?php echo $txtColor; ?>; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; text-transform: capitalize;">
-                                    <?php echo $est; ?>
-                                </span>
-                            </td>
-                            <td style="padding: 15px; text-align: right; white-space: nowrap;">
-                                <a href="detalle_orden.php?id=<?php echo $p['id']; ?>" class="btn-mini">
-                                    Ver Detalle
-                                </a>
-                                <?php if($esPendiente): ?>
-                                <!-- Gap 1: Botón cancelar — solo visible en pedidos pendientes -->
-                                <button class="btn-cancelar-pedido"
-                                        id="btn-cancelar-<?php echo $p['id']; ?>"
-                                        onclick="abrirModal(<?php echo $p['id']; ?>)">
-                                    <i class="fas fa-times"></i> Cancelar
-                                </button>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+                        <!-- F2: Banner de pendiente confirmación -->
+                        <div style="background:#fff3e0; border:2px solid #ffb74d; border-radius:10px; padding:15px; margin-bottom:15px;">
+                            <h4 style="margin:0 0 10px 0; color:#e65100; font-family:'Merriweather';"><i class="fas fa-exclamation-circle"></i> Cambio propuesto en tu pedido</h4>
+                            <p style="font-size:0.9rem; margin:0 0 5px 0;"><strong>Motivo:</strong> <?php echo htmlspecialchars($hist['motivo'] ?? 'Sin motivo especificado.'); ?></p>
+                            <pre style="font-family:inherit; font-size:0.85rem; background:#ffe0b2; padding:10px; border-radius:5px; margin-bottom:15px; white-space:pre-wrap;"><?php echo htmlspecialchars($hist['valor_nuevo'] ?? ''); ?></pre>
+                            
+                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                <button onclick="responderCambio(<?php echo $p['id']; ?>, 'confirmar')" style="background:#27ae60; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:700;"><i class="fas fa-check"></i> Confirmar Cambio</button>
+                                <button onclick="responderCambio(<?php echo $p['id']; ?>, 'rechazar')" style="background:#e74c3c; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:700;"><i class="fas fa-times"></i> Rechazar y Cancelar</button>
+                            </div>
+                        </div>
+                    <?php elseif ($est === 'cancelado'): ?>
+                        <div style="background:#f8d7da; color:#721c24; padding:10px 15px; border-radius:8px; font-weight:bold;"><i class="fas fa-ban"></i> Este pedido fue cancelado.</div>
+                    <?php else: ?>
+                        <!-- F3: Timeline Visual -->
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; position:relative;">
+                            <div style="position:absolute; top:50%; left:0; width:100%; height:4px; background:#f0f0f0; z-index:0; transform:translateY(-50%);"></div>
+                            
+                            <?php foreach($pasos as $k => $v): 
+                                $isCompleted = ($v['idx'] < $pasoActualIdx);
+                                $isActive = ($v['idx'] === $pasoActualIdx);
+                                $color = $isCompleted ? '#27ae60' : ($isActive ? 'var(--accent-toast)' : '#dcdcdc');
+                                $textColor = $isActive ? '#111' : '#888';
+                                $bg = $isCompleted ? '#27ae60' : ($isActive ? 'var(--accent-toast)' : '#fff');
+                                $border = $isCompleted ? '#27ae60' : ($isActive ? 'var(--accent-toast)' : '#dcdcdc');
+                                $iconColor = ($isCompleted || $isActive) ? '#fff' : '#aaa';
+                            ?>
+                            <div style="z-index:1; display:flex; flex-direction:column; align-items:center; gap:8px; width:25%;">
+                                <div style="width:30px; height:30px; border-radius:50%; background:<?php echo $bg; ?>; border:2px solid <?php echo $border; ?>; display:flex; align-items:center; justify-content:center; color:<?php echo $iconColor; ?>; <?php if($isActive) echo 'box-shadow: 0 0 0 4px rgba(217, 140, 69, 0.2); animation: pulse 2s infinite;'; ?>">
+                                    <?php if($isCompleted): ?><i class="fas fa-check" style="font-size:0.7rem;"></i><?php else: ?><div style="width:8px;height:8px;background:<?php echo $iconColor; ?>;border-radius:50%;"></div><?php endif; ?>
+                                </div>
+                                <div style="font-size:0.75rem; font-weight:<?php echo $isActive ? '700' : '600'; ?>; color:<?php echo $textColor; ?>; text-align:center;">
+                                    <?php echo $v['label']; ?>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <?php if(!empty($p['fecha_envio_programada'])): 
+                            $diasSem = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+                            $ts = strtotime($p['fecha_envio_programada']);
+                            $fechaFormateada = $diasSem[date('w',$ts)] . ', ' . date('d/m/Y', $ts);
+                            $horaFormateada = '';
+                            if(!empty($p['hora_envio_programada'])) {
+                                list($hh,$mm) = explode(':', $p['hora_envio_programada']);
+                                $horaFormateada = ' a las ' . (((int)$hh % 12 ?: 12) . ':' . $mm . ((int)$hh < 12 ? ' AM' : ' PM'));
+                            }
+                        ?>
+                        <div style="background:#f4f9f4; border-radius:8px; padding:10px; font-size:0.85rem; color:#2c3e50; display:flex; align-items:center; gap:10px;">
+                            <i class="fas fa-truck" style="color:#27ae60;"></i> 
+                            <strong>Entrega programada:</strong> <?php echo $fechaFormateada . $horaFormateada; ?>
+                        </div>
+                        <?php endif; ?>
+                        
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
         </div>
+
 
     <?php else: ?>
         <div style="text-align: center; padding: 60px; background: #fff; border-radius: 10px; border: 1px solid #eee;">
@@ -245,27 +298,17 @@ function ejecutarCancelacion() {
         btn.textContent = 'Sí, cancelar';
 
         if (data.success) {
-            // Actualizar la fila en tiempo real sin recargar la página
-            const badge = document.getElementById('badge-' + pedidoAcancelar);
-            if (badge) {
-                badge.style.background = '#f8d7da';
-                badge.style.color      = '#721c24';
-                badge.textContent      = 'cancelado';
-            }
-            // Quitar el botón de cancelar (ya no aplica para este pedido)
-            const btnCancelar = document.getElementById('btn-cancelar-' + pedidoAcancelar);
-            if (btnCancelar) btnCancelar.remove();
-
-            mostrarToast('✅ ' + data.msg, 'success');
+            // Recargar la página para reflejar el estado cancelado en la tarjeta
+            window.location.reload();
         } else {
-            mostrarToast('❌ ' + data.error, 'error');
+            alert(data.error || 'Error al cancelar el pedido.');
         }
     })
-    .catch(() => {
+    .catch(e => {
         cerrarModal();
         btn.disabled    = false;
         btn.textContent = 'Sí, cancelar';
-        mostrarToast('❌ Error de conexión. Intenta de nuevo.', 'error');
+        alert('Ocurrió un error de conexión.');
     });
 }
 

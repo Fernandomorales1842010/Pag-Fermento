@@ -57,7 +57,9 @@
                         $enOferta = (isset($prod['oferta']) && $prod['oferta'] == 1 && !$agotado);
                     ?>
 
-                    <div class="product-card-simple" style="<?php echo $agotado ? 'opacity: 0.7; filter: grayscale(1);' : ''; ?>">
+                    <div class="product-card-simple" 
+                         onclick="window.location.href='producto.php?id=<?php echo $prod['id']; ?>'"
+                         style="cursor: pointer; <?php echo $agotado ? 'opacity: 0.7; filter: grayscale(1);' : ''; ?>">
                         
                         <a href="producto.php?id=<?php echo $prod['id']; ?>" style="display: block; position: relative;">
                             <img src="assets/img/<?php echo htmlspecialchars($prod['imagen']); ?>" 
@@ -92,14 +94,10 @@
                                     <a href="producto.php?id=<?php echo $prod['id']; ?>" class="btn-icon-add btn-disabled" title="Ver (Agotado)">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                <?php elseif($prod['tiene_variantes'] > 0): ?>
-                                    <a href="producto.php?id=<?php echo $prod['id']; ?>" class="btn-icon-add" title="Ver Opciones">
-                                        <i class="fas fa-list"></i>
-                                    </a>
                                 <?php else: ?>
-                                    <button class="btn-icon-add" onclick="addToCart(<?php echo $prod['id']; ?>, 1)" title="Añadir al Carrito">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
+                                    <a href="producto.php?id=<?php echo $prod['id']; ?>" class="btn-icon-add" title="Ver Detalle">
+                                        <i class="fas fa-arrow-right"></i>
+                                    </a>
                                 <?php endif; ?>
                             </div>
                         </div>

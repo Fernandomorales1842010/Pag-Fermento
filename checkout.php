@@ -31,6 +31,7 @@ if (isset($_SESSION['user_id'])) {
 // actualizó un precio, el cliente debe ver el valor correcto aquí también.
 $subtotal = 0;
 $minimo_violations = [];
+$agrupadoPorPadre = []; // Para validar F4
 foreach ($_SESSION['carrito'] as $key => $item) {
     // Obtener precio real desde la BD
     if (!empty($item['variante_id'])) {
@@ -50,16 +51,29 @@ foreach ($_SESSION['carrito'] as $key => $item) {
         $subtotal += $precio_real * $item['cantidad'];
     }
 
-    $min = isset($item['minimo_compra']) ? (int)$item['minimo_compra'] : 1;
+    $min = isset($item['minimo_compra_padre']) ? (int)$item['minimo_compra_padre'] : (isset($item['minimo_compra']) ? (int)$item['minimo_compra'] : 1);
     if ($min < 1) $min = 1;
-    if ($item['cantidad'] < $min) {
-        $minimo_violations[] = [
-            'nombre' => $item['nombre'],
+
+    if (!isset($agrupadoPorPadre[$item['id']])) {
+        $agrupadoPorPadre[$item['id']] = [
+            'nombre' => preg_replace('/ \(.*\)$/', '', $item['nombre']), // Quitar nombre de variante para el msj
             'minimo' => $min,
-            'actual' => $item['cantidad'],
+            'cantidad_total' => 0
+        ];
+    }
+    $agrupadoPorPadre[$item['id']]['cantidad_total'] += $item['cantidad'];
+}
+
+foreach ($agrupadoPorPadre as $pId => $datos) {
+    if ($datos['cantidad_total'] < $datos['minimo']) {
+        $minimo_violations[] = [
+            'nombre' => $datos['nombre'],
+            'minimo' => $datos['minimo'],
+            'actual' => $datos['cantidad_total'],
         ];
     }
 }
+
 $hay_errores_minimo = count($minimo_violations) > 0;
 
 
@@ -184,27 +198,63 @@ $total_pagar = $subtotal - $descuento + $costoEnvio;
                     <textarea name="notas" rows="2" placeholder="Ej: Timbre no sirve, dejar en recepción..." style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;"></textarea>
                 </div>
 
+                <!-- ── FECHA Y HORA DE ENTREGA (F1) ──────────────────────── -->
+                <div class="form-group" id="grupoFechaEntrega" style="margin-top:18px;">
+                    <label style="font-weight:700;margin-bottom:6px;display:block;">
+                        📅 Fecha de Entrega Deseada <span style="color:#c0392b;">*</span>
+                    </label>
+                    <input type="date" name="fecha_envio_programada" id="fechaEntrega"
+                           min="<?= date('Y-m-d', strtotime('+' . (int)getConfig('horas_anticipacion', 42) . ' hours')) ?>"
+                           required
+                           onchange="cargarFranjas(this.value)"
+                           style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-family:'Poppins';font-size:0.9rem;color:#333;">
+                    <small id="msgFecha" style="color:#e74c3c;font-size:0.78rem;display:none;margin-top:4px;"></small>
+                </div>
+
+                <div class="form-group" id="grupoHoraEntrega" style="display:none;margin-top:4px;">
+                    <label style="font-weight:700;margin-bottom:6px;display:block;">
+                        🕐 Hora de Entrega <span style="color:#c0392b;">*</span>
+                    </label>
+                    <select name="hora_envio_programada" id="horaEntrega" required
+                            style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-family:'Poppins';font-size:0.9rem;background:white;">
+                        <option value="">Primero selecciona una fecha...</option>
+                    </select>
+                    <small id="horarioInfo" style="color:#888;font-size:0.77rem;margin-top:4px;display:block;"></small>
+                </div>
+                <!-- ──────────────────────────────────────────────────────── -->
+
             </form>
+
         </div>
 
         <!-- RESUMEN -->
         <div class="order-summary" style="background:white; padding:30px; border-radius:10px; border:1px solid #eee; height:fit-content;">
             <h3 style="margin-bottom:20px; border-bottom:2px solid var(--bg-cream); padding-bottom:10px;">Resumen</h3>
             
-            <?php foreach ($_SESSION['carrito'] as $item):
-                $min = isset($item['minimo_compra']) ? (int)$item['minimo_compra'] : 1;
+            <?php
+            $cantidadesPorProducto = [];
+            foreach ($_SESSION['carrito'] as $cItem) {
+                $pId = $cItem['id'];
+                $cantidadesPorProducto[$pId] = ($cantidadesPorProducto[$pId] ?? 0) + $cItem['cantidad'];
+            }
+            
+            foreach ($_SESSION['carrito'] as $item):
+                $pId = $item['id'];
+                $min = isset($item['minimo_compra_padre']) ? (int)$item['minimo_compra_padre'] : (isset($item['minimo_compra']) ? (int)$item['minimo_compra'] : 1);
                 if ($min < 1) $min = 1;
-                $bajo_minimo = ($item['cantidad'] < $min);
+                
+                $sumaCombinada = $cantidadesPorProducto[$pId];
+                $bajo_minimo = ($sumaCombinada < $min);
             ?>
                 <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:0.95rem; <?php echo $bajo_minimo ? 'border-left:3px solid #e74c3c; padding-left:8px;' : ''; ?>">
                     <div>
                         <strong><?php echo $item['cantidad']; ?>x</strong> <?php echo htmlspecialchars($item['nombre']); ?>
                         <?php if ($bajo_minimo): ?>
                             <div style="font-size:0.75rem; color:#c0392b; font-weight:600; margin-top:2px;">
-                                &#9888; Mínimo: <?php echo $min; ?> uds. (faltan <?php echo ($min - $item['cantidad']); ?>)
+                                &#9888; Mínimo combinado: <?php echo $min; ?> uds. (Llevas <?php echo $sumaCombinada; ?>)
                             </div>
                         <?php elseif ($min > 1): ?>
-                            <div style="font-size:0.72rem; color:#888;">Mínimo de compra: <?php echo $min; ?></div>
+                            <div style="font-size:0.72rem; color:#888;">Mínimo de la categoría: <?php echo $min; ?></div>
                         <?php endif; ?>
                     </div>
                     <div>Q<?php echo number_format($item['precio'] * $item['cantidad'], 2); ?></div>
@@ -377,6 +427,52 @@ function removerCupon() {
     .then(data => {
         if(data.success) window.location.reload();
     });
+}
+
+// ── F1: Cargar franjas horarias disponibles para la fecha elegida ────────────
+function cargarFranjas(fecha) {
+    const msgFecha    = document.getElementById('msgFecha');
+    const grupoHora   = document.getElementById('grupoHoraEntrega');
+    const selectHora  = document.getElementById('horaEntrega');
+    const horarioInfo = document.getElementById('horarioInfo');
+
+    if (!fecha) return;
+
+    // Reset visual
+    msgFecha.style.display = 'none';
+    grupoHora.style.display = 'none';
+    selectHora.innerHTML = '<option value="">Cargando...</option>';
+    selectHora.removeAttribute('required');
+
+    fetch('ajax/franjas_entrega.php?fecha=' + encodeURIComponent(fecha))
+        .then(r => r.json())
+        .then(data => {
+            if (!data.disponible) {
+                msgFecha.textContent = data.mensaje;
+                msgFecha.style.display = 'block';
+                grupoHora.style.display = 'none';
+                selectHora.innerHTML = '<option value="">No disponible</option>';
+            } else {
+                // Rellenar horas
+                selectHora.innerHTML = '<option value="">Elige tu hora de entrega...</option>';
+                data.franjas.forEach(h => {
+                    const op = document.createElement('option');
+                    op.value = h;
+                    const [hh, mm] = h.split(':');
+                    const hora12 = ((parseInt(hh) % 12) || 12) + ':' + mm + (parseInt(hh) < 12 ? ' AM' : ' PM');
+                    op.textContent = hora12;
+                    selectHora.appendChild(op);
+                });
+                selectHora.setAttribute('required', 'required');
+                horarioInfo.textContent = '⏰ Horario de atención: ' + data.horario;
+                grupoHora.style.display = 'block';
+                msgFecha.style.display = 'none';
+            }
+        })
+        .catch(() => {
+            msgFecha.textContent = 'Error al cargar horarios. Recarga la página.';
+            msgFecha.style.display = 'block';
+        });
 }
 </script>
 

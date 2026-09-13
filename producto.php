@@ -160,7 +160,10 @@
     <?php
         $minimo_compra = isset($producto['minimo_compra']) ? (int)$producto['minimo_compra'] : 1;
         if ($minimo_compra < 1) $minimo_compra = 1;
-        $qty_inicial = $minimo_compra;
+        // F4: Si tiene variantes, el mínimo por ítem en el selector es 1 para permitir combinaciones.
+        // Si no tiene variantes, el mínimo es el minimo_compra.
+        $qty_min = $tieneVariantes ? 1 : $minimo_compra;
+        $qty_inicial = $qty_min;
         $qty_max = $tieneVariantes ? 9999 : $producto['stock'];
     ?>
     <div class="actions-group">
@@ -168,16 +171,26 @@
             <button onclick="updateQty(-1)">-</button>
             <input type="number" id="qty"
                 value="<?php echo $qty_inicial; ?>"
-                min="<?php echo $minimo_compra; ?>"
+                min="<?php echo $qty_min; ?>"
                 max="<?php echo $qty_max; ?>"
-                data-minimo="<?php echo $minimo_compra; ?>"
+                data-minimo="<?php echo $qty_min; ?>"
+                data-minimo-padre="<?php echo $minimo_compra; ?>"
                 readonly>
             <button onclick="updateQty(1)">+</button>
         </div>
-        <div id="minimoContainer" style="font-size:0.78rem; color:#888; margin-top:6px; margin-bottom:4px; display:<?php echo $minimo_compra > 1 ? 'block' : 'none'; ?>">
+        
+        <?php if($tieneVariantes && $minimo_compra > 1): ?>
+        <div style="font-size:0.85rem; color:#27ae60; margin-top:8px; margin-bottom:4px; font-weight:600; display:flex; align-items:center; gap:6px; background:#eafaf1; padding:8px 12px; border-radius:6px; border:1px solid #c8e6c9;">
+            <i class="fas fa-boxes"></i>
+            <span>Puedes combinar sabores. Mínimo: <strong><?php echo $minimo_compra; ?></strong> uds en total.</span>
+        </div>
+        <?php elseif($minimo_compra > 1): ?>
+        <div id="minimoContainer" style="font-size:0.78rem; color:#888; margin-top:6px; margin-bottom:4px;">
             <i class="fas fa-info-circle" style="color:#D98C45;"></i>
             Mínimo de compra: <strong id="minimoValue"><?php echo $minimo_compra; ?></strong> unidades
         </div>
+        <?php endif; ?>
+
         <button class="btn-primary add-cart" onclick="addCurrentToCart(<?php echo $producto['id']; ?>)">
             Añadir al Carrito
         </button>
@@ -308,14 +321,16 @@
             if (qtyInput) {
                 const stockMax = v.stock > 0 ? v.stock : 9999;
                 const minCompra = v.minimo_compra ? parseInt(v.minimo_compra) : 1;
+                const esCombinable = (typeof window.VARIANTES_DATA !== 'undefined' && window.VARIANTES_DATA.length > 0);
+                const inputMin = esCombinable ? 1 : minCompra;
                 
                 qtyInput.max = stockMax;
-                qtyInput.min = minCompra;
-                qtyInput.dataset.minimo = minCompra;
+                qtyInput.min = inputMin;
+                qtyInput.dataset.minimo = inputMin;
                 
                 let curVal = parseInt(qtyInput.value) || 1;
                 if (curVal > stockMax && v.stock > 0) qtyInput.value = stockMax;
-                if (curVal < minCompra) qtyInput.value = minCompra;
+                if (curVal < inputMin) qtyInput.value = inputMin;
                 
                 const minContainer = document.getElementById('minimoContainer');
                 const minValEl = document.getElementById('minimoValue');
@@ -392,13 +407,16 @@
                 let stock = parseInt(option.getAttribute('data-stock'));
                 let minCompra = parseInt(option.getAttribute('data-minimo') || 1);
                 
+                const esCombinable = (typeof window.VARIANTES_DATA !== 'undefined' && window.VARIANTES_DATA.length > 0);
+                const inputMin = esCombinable ? 1 : minCompra;
+
                 qtyInput.setAttribute('max', stock > 0 ? stock : 9999);
-                qtyInput.setAttribute('min', minCompra);
-                qtyInput.setAttribute('data-minimo', minCompra);
+                qtyInput.setAttribute('min', inputMin);
+                qtyInput.setAttribute('data-minimo', inputMin);
                 
                 let curVal = parseInt(qtyInput.value) || 1;
                 if(curVal > stock && stock > 0) qtyInput.value = stock;
-                if(curVal < minCompra) qtyInput.value = minCompra;
+                if(curVal < inputMin) qtyInput.value = inputMin;
                 
                 const minContainer = document.getElementById('minimoContainer');
                 const minValEl = document.getElementById('minimoValue');

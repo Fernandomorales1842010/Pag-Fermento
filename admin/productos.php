@@ -2,6 +2,11 @@
 $currentPage = 'productos';
 $pageTitle = 'Inventario';
 require '../includes/db.php';
+require '../includes/config.php';
+include 'includes/admin_header.php';
+
+require_can('ver_productos');
+
 
 // MENSAJES DE NOTIFICACIÓN
 $msg = $_GET['msg'] ?? '';
@@ -70,7 +75,6 @@ function kpiUrl($stock_f, $current) {
 // Categorías únicas para el filtro
 $cats = $pdo->query("SELECT DISTINCT categoria FROM productos ORDER BY categoria")->fetchAll(PDO::FETCH_COLUMN);
 
-include 'includes/admin_header.php';
 include 'includes/admin_nav.php';
 ?>
 

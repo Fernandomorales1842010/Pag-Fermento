@@ -5,14 +5,10 @@ $pageTitle   = 'Gestión de Usuarios';
 require '../includes/db.php';
 require '../includes/config.php';
 include 'includes/admin_header.php';
-
-// Solo el rol 'admin' puede acceder
-if ($_SESSION['user_rol'] !== 'admin') {
-    echo "<div style='padding:50px;text-align:center;'><h2>Acceso Denegado</h2><p>Solo los administradores pueden gestionar usuarios.</p><a href='index.php'>Volver al inicio</a></div>";
-    exit;
-}
+require_can('ver_usuarios'); // Solo admin
 
 include 'includes/admin_nav.php';
+
 
 // Parámetros de búsqueda
 $search = trim($_GET['buscar'] ?? '');

@@ -4,6 +4,7 @@ $pageTitle   = 'Logs de Actividad';
 require '../includes/db.php';
 require '../includes/config.php';
 include 'includes/admin_header.php';
+require_can('ver_logs'); // Solo admin
 include 'includes/admin_nav.php';
 
 // Paginación

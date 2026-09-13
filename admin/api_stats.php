@@ -111,16 +111,59 @@ $sqlStock = "
 ";
 $stock = $pdo->query($sqlStock)->fetchAll(PDO::FETCH_ASSOC);
 
+// 9. PRODUCTO MÁS VENDIDO — en el periodo (unidades + monto)
+$stmt = $pdo->prepare(
+    "SELECT dp.nombre_producto,
+            SUM(dp.cantidad) as unidades,
+            SUM(dp.cantidad * dp.precio_unitario) as monto
+     FROM detalles_pedido dp
+     JOIN pedidos p ON dp.pedido_id = p.id
+     WHERE DATE(p.fecha) BETWEEN ? AND ? AND p.estado != 'cancelado' $whereCostosP
+     GROUP BY dp.nombre_producto
+     ORDER BY unidades DESC
+     LIMIT 1"
+);
+$stmt->execute($params);
+$productoTop = $stmt->fetch(PDO::FETCH_ASSOC) ?: ['nombre_producto' => '—', 'unidades' => 0, 'monto' => 0];
+
+// 11. VENTAS POR AÑO — todos los años con pedidos (no filtrado por rango)
+$stmtAnual = $pdo->query(
+    "SELECT YEAR(fecha) as anio,
+            SUM(total) as total,
+            COUNT(*) as pedidos
+     FROM pedidos
+     WHERE estado != 'cancelado'
+     GROUP BY anio
+     ORDER BY anio ASC"
+);
+$ventasPorAnio = $stmtAnual->fetchAll(PDO::FETCH_ASSOC);
+
+// 12. HORARIO DE MÁS VENTA — pedidos por hora del día en el periodo
+$stmt = $pdo->prepare(
+    "SELECT HOUR(p.fecha) as hora,
+            COUNT(*) as pedidos,
+            SUM(p.total) as monto
+     FROM pedidos p
+     WHERE DATE(p.fecha) BETWEEN ? AND ? AND p.estado != 'cancelado' $whereCostos
+     GROUP BY hora
+     ORDER BY hora ASC"
+);
+$stmt->execute($params);
+$horarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 $output = json_encode([
-    'rango'          => ['desde' => $desde, 'hasta' => $hasta],
-    'kpi_ventas'     => $ventasPeriodo,
-    'kpi_pedidos'    => $pedidosPeriodo,
-    'kpi_ticket'     => $ticketPromedio,
-    'ventas_diarias' => $ventasDiarias,
-    'top_productos'  => $topProductos,
-    'categorias'     => $categorias,
-    'estados'        => $estados,
-    'stock'          => $stock
+    'rango'           => ['desde' => $desde, 'hasta' => $hasta],
+    'kpi_ventas'      => $ventasPeriodo,
+    'kpi_pedidos'     => $pedidosPeriodo,
+    'kpi_ticket'      => $ticketPromedio,
+    'ventas_diarias'  => $ventasDiarias,
+    'top_productos'   => $topProductos,
+    'categorias'      => $categorias,
+    'estados'         => $estados,
+    'stock'           => $stock,
+    'producto_top'    => $productoTop,
+    'ventas_por_anio' => $ventasPorAnio,
+    'horarios'        => $horarios,
 ]);
 
 file_put_contents($cache_file, $output);

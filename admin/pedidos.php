@@ -8,7 +8,7 @@ include 'includes/admin_nav.php';
 // ── Filtros vista principal ─────────────────────────────────────────────────
 $fEstado = $_GET['estado'] ?? 'todos';
 $search  = trim($_GET['buscar'] ?? '');
-$allowed = ['todos','pendiente','completado','cancelado', 'en_camino'];
+$allowed = ['todos','pendiente','completado','cancelado','en_camino','preparando','entregado','pendiente_confirmacion'];
 if (!in_array($fEstado, $allowed)) $fEstado = 'todos';
 
 // Ordenamiento por columna
@@ -92,7 +92,15 @@ $_lp    = __DIR__ . '/../assets/img/logo_fermento.png';
 $_lb64  = file_exists($_lp) ? 'data:image/png;base64,'.base64_encode(file_get_contents($_lp)) : '';
 
 function estadoBadge($e) {
-    $map = ['pendiente'=>['badge-pending','⏳ Pendiente'],'completado'=>['badge-success','✅ Completado'],'cancelado'=>['badge-danger','❌ Cancelado'],'en_camino'=>['badge-pending','🚚 En Camino']];
+    $map = [
+        'pendiente'             => ['badge-pending', '⏳ Pendiente'],
+        'preparando'            => ['badge-pending', '🧑‍🍳 Preparando'],
+        'en_camino'             => ['badge-pending', '🚚 En Camino'],
+        'entregado'             => ['badge-success', '📦 Entregado'],
+        'completado'            => ['badge-success', '✅ Completado'],
+        'cancelado'             => ['badge-danger',  '❌ Cancelado'],
+        'pendiente_confirmacion'=> ['badge-pending', '🔄 Por Confirmar']
+    ];
     $d = $map[strtolower($e)] ?? ['badge-pending',$e];
     return "<span class=\"badge {$d[0]}\">{$d[1]}</span>";
 }

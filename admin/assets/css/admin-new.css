@@ -48,13 +48,40 @@ body {
     color: white;
     height: 100vh;
     position: fixed;
-    top: 0; left: 0;
+    top: 0; left: 0; bottom: 0;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     padding: 30px 15px;
     z-index: 1000;
-    transition: width 0.3s ease;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: var(--sidebar-width);
 }
+
+/* Custom Scrollbar para Sidebar */
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+.sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+
+/* --- SIDEBAR COLLAPSED (Desktop) --- */
+.sidebar.collapsed {
+    width: 80px;
+}
+.sidebar.collapsed .sidebar-brand { font-size: 1rem; }
+.sidebar.collapsed .sidebar-brand span { display: none; }
+.sidebar.collapsed .sidebar-menu span,
+.sidebar.collapsed .sidebar-footer span,
+.sidebar.collapsed .user-info-text {
+    display: none;
+}
+.sidebar.collapsed .desktop-toggle i { transform: rotate(180deg); }
+.sidebar.collapsed ~ .main-wrapper {
+    margin-left: 80px;
+}
+
 
 .sidebar-brand {
     font-family: 'Merriweather', serif;
@@ -125,7 +152,7 @@ body {
     flex-grow: 1;
     padding: 40px;
     min-width: 0;
-    transition: margin-left 0.3s ease;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .page-header {
@@ -436,7 +463,7 @@ select:focus {
     }
 
     .main-wrapper {
-        margin-left: 0;
+        margin-left: 0 !important;
         padding: 80px 15px 40px; /* Adjust for mobile header */
     }
 

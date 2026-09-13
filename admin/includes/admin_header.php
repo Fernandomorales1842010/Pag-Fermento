@@ -1,16 +1,6 @@
 <?php
 // admin/includes/admin_header.php
-if (session_status() === PHP_SESSION_NONE) session_start();
-if (!isset($_SESSION['user_id'])) { 
-    header("Location: ../login.php"); 
-    exit; 
-}
-
-$rol = $_SESSION['user_rol'] ?? 'cliente';
-if (!in_array($rol, ['admin', 'supervisor'])) {
-    header("Location: ../index.php?msg=acceso_denegado");
-    exit;
-}
+require_once __DIR__ . '/auth_admin.php';
 ?>
 <!DOCTYPE html>
 <html lang="es">

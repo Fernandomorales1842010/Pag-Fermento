@@ -186,6 +186,18 @@ $pendingO = $pdo->query("SELECT COUNT(*) FROM pedidos WHERE estado = 'pendiente'
 /* Hacer que los KPIs sean clickeables */
 .kpi-card { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
 .kpi-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+
+/* Grid para Fila 3 */
+.dashboard-grid-3 {
+    display: grid;
+    grid-template-columns: 280px 1fr 1fr;
+    gap: 25px;
+    margin-top: 25px;
+    align-items: start;
+}
+@media (max-width: 1024px) {
+    .dashboard-grid-3 { grid-template-columns: 1fr; }
+}
 </style>
 
 <div class="kpi-grid">
@@ -250,6 +262,47 @@ $pendingO = $pdo->query("SELECT COUNT(*) FROM pedidos WHERE estado = 'pendiente'
     <div class="card">
         <h2 style="font-family: 'Merriweather'; font-size: 1.1rem; margin-bottom: 20px;">Alertas de Stock (Mínimos)</h2>
         <canvas id="chartStockAlert"></canvas>
+    </div>
+
+</div>
+
+<!-- FILA 3: Producto Top + Ventas por Año + Horario de Más Venta -->
+<div class="dashboard-grid-3">
+
+    <!-- #9 PRODUCTO MÁS VENDIDO -->
+    <div class="card" style="padding:24px; text-align:center;">
+        <div style="font-size:0.72rem; text-transform:uppercase; letter-spacing:1px; color:#aaa; font-weight:700; margin-bottom:12px;">
+            <i class="fas fa-trophy" style="color:#D98C45;"></i> Producto Estrella del Periodo
+        </div>
+        <div style="font-size:2.5rem; margin-bottom:6px;">🍞</div>
+        <div id="productoTopNombre" style="font-family:'Merriweather'; font-size:1rem; font-weight:700; color:#1F1F1F; margin-bottom:10px;">—</div>
+        <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap;">
+            <div style="background:#fff8ee; border-radius:10px; padding:8px 14px;">
+                <div style="font-size:0.65rem; color:#aaa; font-weight:600;">UNIDADES</div>
+                <div id="productoTopUds" style="font-size:1.1rem; font-weight:800; color:#D98C45;">0</div>
+            </div>
+            <div style="background:#eafaf1; border-radius:10px; padding:8px 14px;">
+                <div style="font-size:0.65rem; color:#aaa; font-weight:600;">MONTO</div>
+                <div id="productoTopMonto" style="font-size:1.1rem; font-weight:800; color:#27ae60;">Q0.00</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- #11 VENTAS POR AÑO -->
+    <div class="card">
+        <h2 style="font-family:'Merriweather'; font-size:1rem; margin-bottom:16px;">
+            <i class="fas fa-chart-bar" style="color:#6C63FF; margin-right:8px;"></i>Ventas por Año
+        </h2>
+        <canvas id="chartVentasAnio" height="160"></canvas>
+    </div>
+
+    <!-- #12 HORARIO DE MÁS VENTA -->
+    <div class="card">
+        <h2 style="font-family:'Merriweather'; font-size:1rem; margin-bottom:6px;">
+            <i class="fas fa-clock" style="color:#D98C45; margin-right:8px;"></i>Horario de Más Venta
+        </h2>
+        <p style="color:#aaa; font-size:0.75rem; margin-bottom:14px;">Pedidos por hora del día en el periodo.</p>
+        <canvas id="chartHorarios" height="160"></canvas>
     </div>
 
 </div>
@@ -627,6 +680,47 @@ $pendingO = $pdo->query("SELECT COUNT(*) FROM pedidos WHERE estado = 'pendiente'
             }, {
                 onClick: (e, activeEls) => handleChartClick(e, activeEls, 'stock', data.stock.map(x => x.nombre))
             });
+            // --- #9 PRODUCTO TOP (KPI card) ---
+            const pt = data.producto_top || {};
+            const ptEl = document.getElementById('productoTopNombre');
+            if (ptEl) {
+                ptEl.textContent = pt.nombre_producto || '—';
+                document.getElementById('productoTopUds').textContent  = (pt.unidades || 0) + ' uds';
+                document.getElementById('productoTopMonto').textContent = 'Q' + parseFloat(pt.monto || 0).toFixed(2);
+            }
+
+            // --- #11 VENTAS POR AÑO (Bar chart) ---
+            if (data.ventas_por_anio && data.ventas_por_anio.length) {
+                renderChart('chartVentasAnio', 'bar', {
+                    labels: data.ventas_por_anio.map(x => String(x.anio)),
+                    datasets: [{
+                        label: 'Ventas (Q)',
+                        data: data.ventas_por_anio.map(x => parseFloat(x.total)),
+                        backgroundColor: data.ventas_por_anio.map((_, i) =>
+                            ['#6C63FF','#D98C45','#27ae60','#e74c3c','#3498db'][i % 5]),
+                        borderRadius: 10
+                    }]
+                });
+            }
+
+            // --- #12 HORARIO DE MÁS VENTA (Bar chart) ---
+            if (data.horarios && data.horarios.length) {
+                const hLabels = Array.from({length: 24}, (_, h) => {
+                    const h12 = (h % 12 || 12) + (h < 12 ? ' AM' : ' PM');
+                    return h12;
+                });
+                const hData = Array(24).fill(0);
+                data.horarios.forEach(h => { hData[parseInt(h.hora)] = parseInt(h.pedidos); });
+                renderChart('chartHorarios', 'bar', {
+                    labels: hLabels,
+                    datasets: [{
+                        label: 'Pedidos',
+                        data: hData,
+                        backgroundColor: hData.map(v => v === Math.max(...hData) ? '#D98C45' : 'rgba(108,99,255,0.5)'),
+                        borderRadius: 6
+                    }]
+                });
+            }
         });
     }
 

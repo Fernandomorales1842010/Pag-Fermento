@@ -4,7 +4,9 @@ $pageTitle   = 'Nuevo Producto';
 require '../includes/db.php';
 require '../includes/config.php';
 include 'includes/admin_header.php';
+require_can('editar_productos'); // Solo admin
 include 'includes/admin_nav.php';
+
 
 $err = $_GET['err'] ?? '';
 $errMsg = [

@@ -2,6 +2,7 @@
 $currentPage = 'productos';
 require '../includes/db.php';
 require '../includes/config.php';
+include 'includes/admin_header.php';
 
 if (!isset($_GET['id'])) { header("Location: productos.php"); exit; }
 $id = (int)$_GET['id'];
@@ -16,7 +17,7 @@ $variantes = $stmtVar->fetchAll(PDO::FETCH_ASSOC);
 $tieneVariantes = count($variantes) > 0;
 
 $pageTitle = 'Editar: ' . $p['nombre'];
-include 'includes/admin_header.php';
+require_can('editar_productos'); // Solo admin
 include 'includes/admin_nav.php';
 
 // Helper para imagen actual

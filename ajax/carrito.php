@@ -55,8 +55,6 @@ if ($accion === 'agregar') {
 
         if (isset($_SESSION['carrito'][$key])) {
             $nuevaCantidad = $_SESSION['carrito'][$key]['cantidad'] + $cantidad;
-            // Respetar el mínimo también cuando ya está en el carrito
-            if ($nuevaCantidad < $minimo) $nuevaCantidad = $minimo;
             $_SESSION['carrito'][$key]['cantidad'] = $nuevaCantidad;
         } else {
             $_SESSION['carrito'][$key] = [
@@ -66,7 +64,8 @@ if ($accion === 'agregar') {
                 'precio'        => $precio,
                 'imagen'        => $prod['imagen'],
                 'minimo_compra' => $minimo,
-                'cantidad'      => max($cantidad, $minimo)
+                'minimo_compra_padre' => $prod['minimo_compra'] > 1 ? $prod['minimo_compra'] : 1, // F4
+                'cantidad'      => $cantidad // F4: Permitimos cantidad que envíe producto.php (puede ser 1)
             ];
         }
         $response['success'] = true;
@@ -86,15 +85,18 @@ if ($accion === 'actualizar') {
     $cantidad = (int)$data['cantidad'];
     
     if (isset($_SESSION['carrito'][$key])) {
-        $minimo = isset($_SESSION['carrito'][$key]['minimo_compra']) ? (int)$_SESSION['carrito'][$key]['minimo_compra'] : 1;
-        if ($minimo < 1) $minimo = 1;
-        if ($cantidad >= $minimo) {
-            $_SESSION['carrito'][$key]['cantidad'] = $cantidad;
+        $item = $_SESSION['carrito'][$key];
+        $pId = $item['id'];
+        $minimoPadre = $item['minimo_compra_padre'] ?? $item['minimo_compra'];
+        if ($minimoPadre < 1) $minimoPadre = 1;
+
+        if ($cantidad < 1) {
+            unset($_SESSION['carrito'][$key]);
             $response['success'] = true;
         } else {
-            $response['error']  = "El mínimo para este producto es $minimo unidades.";
-            $response['minimo'] = $minimo;
-            $response['success'] = false;
+            // F4: Permitir armar combinaciones libremente. La validación estricta solo ocurre en el checkout.
+            $_SESSION['carrito'][$key]['cantidad'] = $cantidad;
+            $response['success'] = true;
         }
     }
 }
@@ -104,6 +106,13 @@ $totalGeneral = 0;
 $totalItems = 0;
 $html = '';
 $minimo_violations = [];
+$cantidadesPorProducto = [];
+if (!empty($_SESSION['carrito'])) {
+    foreach ($_SESSION['carrito'] as $cItem) {
+        $pId = $cItem['id'];
+        $cantidadesPorProducto[$pId] = ($cantidadesPorProducto[$pId] ?? 0) + $cItem['cantidad'];
+    }
+}
 
 if (!empty($_SESSION['carrito'])) {
     foreach ($_SESSION['carrito'] as $key => $item) {
@@ -111,35 +120,35 @@ if (!empty($_SESSION['carrito'])) {
         $totalGeneral += $subtotal;
         $totalItems += $item['cantidad'];
         
-        $min = isset($item['minimo_compra']) ? (int)$item['minimo_compra'] : 1;
+        $pId = $item['id'];
+        $min = isset($item['minimo_compra_padre']) ? (int)$item['minimo_compra_padre'] : (isset($item['minimo_compra']) ? (int)$item['minimo_compra'] : 1);
         if ($min < 1) $min = 1;
-        $bajo_minimo = ($item['cantidad'] < $min);
+        
+        $sumaCombinada = $cantidadesPorProducto[$pId];
+        $bajo_minimo = ($sumaCombinada < $min);
         
         if ($bajo_minimo) {
-            $minimo_violations[] = [
-                'nombre' => $item['nombre'],
+            // Guardamos el nombre base (sin el label de variante) para que no se duplique en la alerta si hay varios
+            $nombreBase = explode(' (', $item['nombre'])[0];
+            $minimo_violations[$pId] = [
+                'nombre' => $nombreBase,
                 'minimo' => $min,
-                'actual' => $item['cantidad'],
+                'actual' => $sumaCombinada,
             ];
         }
 
         $borde  = $bajo_minimo ? 'border-left:3px solid #e74c3c;padding-left:8px;' : '';
         $alerta = '';
         if ($bajo_minimo) {
-            $alerta = '<div style="font-size:0.72rem;color:#c0392b;font-weight:600;margin-top:3px;">&#9888; Mínimo: ' . $min . ' unidades</div>';
+            $alerta = '<div style="font-size:0.72rem;color:#c0392b;font-weight:600;margin-top:3px;">&#9888; Mínimo combinado: ' . $min . ' uds. (Llevas ' . $sumaCombinada . ')</div>';
         } elseif ($min > 1) {
-            $alerta = '<div style="font-size:0.7rem;color:#888;">Mínimo: ' . $min . '</div>';
+            $alerta = '<div style="font-size:0.7rem;color:#888;">Mínimo de la categoría: ' . $min . '</div>';
         }
 
         $img = !empty($item['imagen']) ? $item['imagen'] : 'default_pan.png';
 
-        // Botón "-": se deshabilita visualmente si ya estamos en el mínimo
-        $en_minimo = ($item['cantidad'] <= $min);
-        if ($en_minimo) {
-            $btn_menos = '<div class="btn-qty-mini" style="opacity:0.3;cursor:not-allowed;" title="Cantidad mínima alcanzada">-</div>';
-        } else {
-            $btn_menos = '<div class="btn-qty-mini" onclick="updateCartItem(\'' . $key . '\', ' . ($item['cantidad'] - 1) . ')">-</div>';
-        }
+        // Botón "-": nunca deshabilitado aquí, se permite bajar (y hasta borrar si llega a 0)
+        $btn_menos = '<div class="btn-qty-mini" onclick="updateCartItem(\'' . $key . '\', ' . ($item['cantidad'] - 1) . ')">-</div>';
 
         $html .= '
         <div class="cart-item" style="' . $borde . '">
@@ -171,8 +180,8 @@ $response['subtotal']            = 'Q' . number_format($totalGeneral, 2);
 $response['envio']               = 'Q' . number_format($costoEnvio, 2);
 $response['total']               = 'Q' . number_format($totalConEnvio, 2);
 $response['count']               = $totalItems;
-$response['minimo_violations']   = $minimo_violations;
-$response['tiene_errores_minimo']= count($minimo_violations) > 0;
+$response['tiene_errores_minimo'] = count($minimo_violations) > 0;
+$response['minimo_violations']    = array_values($minimo_violations);
 
 header('Content-Type: application/json');
 echo json_encode($response);

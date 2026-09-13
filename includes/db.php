@@ -21,12 +21,11 @@ if (file_exists($_envFile)) {
 }
 unset($_envFile);
 
-/*/ ── Parámetros de conexión ────────────────────────────────────────────────
+// ── Parámetros de conexión ────────────────────────────────────────────────
 $host = getenv('DB_HOST') ?: 'localhost';
 $db   = getenv('DB_NAME') ?: 'DB_fermento';
 $user = getenv('DB_USER') ?: 'root';
-$pass = getenv('DB_PASS');
-*/
+$pass = getenv('DB_PASS') ?: '';
 // Fallo seguro: si no hay credencial configurada, detener sin exponer datos
 if ($pass === false) {
     error_log('FERMENTO: DB_PASS no está configurado en el entorno (.env o variables del servidor).');
@@ -48,14 +47,7 @@ $options = [
 try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (\PDOException $e) {
-    // No exponemos detalles de la conexión al usuario
-    error_log('FERMENTO DB Connection failed: ' . $e->getMessage());
-    // Gap 3: Redirige a la página de error amigable con diseño de marca
-    // en lugar del die() de texto plano anterior.
-    if (!headers_sent()) {
-        header('HTTP/1.1 503 Service Unavailable');
-        header('Location: /error_servidor.html');
-    }
-    exit;
+    // Para depurar:
+    die('FERMENTO DB Connection failed: ' . $e->getMessage());
 }
 ?>

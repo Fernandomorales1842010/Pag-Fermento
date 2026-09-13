@@ -67,17 +67,15 @@ if (count($productos) > 0) {
 
         if ($agotado) {
             $btnHtml = "<a href=\"producto.php?id={$id}\" class=\"btn-icon-add btn-disabled\"><i class=\"fas fa-eye\"></i></a>";
-        } elseif ($tieneVars) {
-            $btnHtml = "<a href=\"producto.php?id={$id}\" class=\"btn-icon-add\"><i class=\"fas fa-list\"></i></a>";
         } else {
-            $btnHtml = "<button class=\"btn-icon-add\" onclick=\"addToCart({$id}, 1)\"><i class=\"fas fa-plus\"></i></button>";
+            $btnHtml = "<a href=\"producto.php?id={$id}\" class=\"btn-icon-add\"><i class=\"fas fa-arrow-right\"></i></a>";
         }
 
         $badgeAgotado = $agotado  ? '<div class="badge-overlay badge-agotado">AGOTADO</div>' : '';
         $badgeOferta  = $enOferta ? '<div class="badge-overlay badge-oferta">★ OFERTA</div>'  : '';
 
         $html .= "
-        <div class=\"product-card-simple fade-in\" style=\"{$opacidad}\">
+        <div class=\"product-card-simple fade-in\" onclick=\"window.location.href='producto.php?id={$id}'\" style=\"cursor:pointer; {$opacidad}\">
             <a href=\"producto.php?id={$id}\" style=\"display:block;position:relative;\">
                 <img src=\"assets/img/{$img}\"
                      class=\"card-img-top\"
