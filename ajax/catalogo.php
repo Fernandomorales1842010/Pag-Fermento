@@ -80,7 +80,7 @@ if (count($productos) > 0) {
                 <img src=\"assets/img/{$img}\"
                      class=\"card-img-top\"
                      alt=\"{$nombre}\"
-                     onerror=\"this.src='assets/img/default_pan.png'\">
+                     onerror=\"this.onerror=null;this.src='assets/img/default_pan.png';\">
                 {$badgeAgotado}
                 {$badgeOferta}
             </a>

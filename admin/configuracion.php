@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
     csrf_verify('configuracion.php');
     $campos = ['costo_envio', 'whatsapp_numero', 'tienda_nombre', 'tienda_descripcion',
                'horario_lv_inicio', 'horario_lv_fin', 'horario_sab_inicio', 'horario_sab_fin',
-               'horas_anticipacion'];
+               'horas_anticipacion', 'multiplicador_pedido_grande'];
     foreach ($campos as $c) {
         if (isset($_POST[$c])) {
             setConfig($c, trim($_POST[$c]));
@@ -127,6 +127,13 @@ $feriados = $pdo->query("SELECT * FROM dias_feriados ORDER BY fecha ASC")->fetch
                    style="width:100%;padding:12px 16px;border:1.5px solid #eee;border-radius:12px;font-family:'Poppins';font-size:0.9rem;"
                    placeholder="50212345678">
             <small style="color:#999;font-size:0.75rem;">Número donde se recibirán los pedidos por WhatsApp.</small>
+        </div>
+
+        <div class="field-group">
+            <label style="font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.5px;color:#555;display:block;margin-bottom:7px;">Multiplicador de Pedido Grande/Especial</label>
+            <input type="number" name="multiplicador_pedido_grande" step="1" min="2" value="<?php echo htmlspecialchars(getConfig('multiplicador_pedido_grande', '3')); ?>"
+                   style="width:100%;padding:12px 16px;border:1.5px solid #eee;border-radius:12px;font-family:'Poppins';font-size:0.9rem;">
+            <small style="color:#999;font-size:0.75rem;">Cuando un cliente pida esta cantidad de veces (o más) el mínimo de compra (batch) de un producto, se le mostrará un aviso para coordinar un pedido grande/especial por WhatsApp.</small>
         </div>
     </div>
 </div>

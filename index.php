@@ -65,7 +65,7 @@
                             <img src="assets/img/<?php echo htmlspecialchars($prod['imagen']); ?>" 
                                  alt="<?php echo htmlspecialchars($prod['nombre']); ?>"
                                  class="card-img-top"
-                                 onerror="this.src='https://via.placeholder.com/300x250?text=Pan'">
+                                 onerror="this.onerror=null;this.src='assets/img/default_pan.png';">
                             
                             <?php if($agotado): ?>
                                 <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 4px 10px; font-size: 0.75rem; font-weight: bold; border-radius: 4px;">

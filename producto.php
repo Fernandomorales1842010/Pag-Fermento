@@ -22,12 +22,19 @@
     
     // Si la variante no tiene un mínimo específico, hereda el del producto principal
     $min_padre = isset($producto['minimo_compra']) && $producto['minimo_compra'] > 1 ? (int)$producto['minimo_compra'] : 1;
+    // unidades_paquete es solo informativo y vive a nivel de producto padre (no hay
+    // columna por variante); todas las variantes comparten el mismo empaque físico.
+    $paquete_padre = !empty($producto['unidades_paquete']) ? (int)$producto['unidades_paquete'] : null;
     foreach ($variantes as &$v) {
         if (empty($v['minimo_compra']) || $v['minimo_compra'] < 1) {
             $v['minimo_compra'] = $min_padre;
         }
+        $v['unidades_paquete'] = $paquete_padre;
     }
     unset($v);
+
+    require_once 'includes/config.php';
+    $multiplicadorPedidoGrande = max(2, (int)getConfig('multiplicador_pedido_grande', 3));
 
     $tieneVariantes = count($variantes) > 0;
 
@@ -55,21 +62,21 @@
     
     <div class="product-gallery">
         <div class="main-image-container">
-            <img src="assets/img/<?php echo htmlspecialchars($producto['imagen']); ?>" id="mainImage" alt="<?php echo htmlspecialchars($producto['nombre']); ?>">
+            <img src="assets/img/<?php echo htmlspecialchars($producto['imagen']); ?>" id="mainImage" alt="<?php echo htmlspecialchars($producto['nombre']); ?>" onerror="this.onerror=null;this.src='assets/img/default_pan.png';">
         </div>
         
         <div class="thumbnail-row">
             <!-- Imagen 1 -->
-            <img src="assets/img/<?php echo htmlspecialchars($producto['imagen']); ?>" class="thumb active" onclick="changeImage(this)">
+            <img src="assets/img/<?php echo htmlspecialchars($producto['imagen']); ?>" class="thumb active" onclick="changeImage(this)" onerror="this.onerror=null;this.src='assets/img/default_pan.png';">
             
             <!-- Imagen 2 (Si existe) -->
             <?php if($producto['imagen_2']): ?>
-                <img src="assets/img/<?php echo htmlspecialchars($producto['imagen_2']); ?>" class="thumb" onclick="changeImage(this)">
+                <img src="assets/img/<?php echo htmlspecialchars($producto['imagen_2']); ?>" class="thumb" onclick="changeImage(this)" onerror="this.onerror=null;this.src='assets/img/default_pan.png';">
             <?php endif; ?>
 
             <!-- Imagen 3 (Si existe) -->
             <?php if($producto['imagen_3']): ?>
-                <img src="assets/img/<?php echo htmlspecialchars($producto['imagen_3']); ?>" class="thumb" onclick="changeImage(this)">
+                <img src="assets/img/<?php echo htmlspecialchars($producto['imagen_3']); ?>" class="thumb" onclick="changeImage(this)" onerror="this.onerror=null;this.src='assets/img/default_pan.png';">
             <?php endif; ?>
         </div>
     </div>
@@ -160,12 +167,25 @@
     <?php
         $minimo_compra = isset($producto['minimo_compra']) ? (int)$producto['minimo_compra'] : 1;
         if ($minimo_compra < 1) $minimo_compra = 1;
+        $unidades_paquete = !empty($producto['unidades_paquete']) ? (int)$producto['unidades_paquete'] : null;
         // F4: Si tiene variantes, el mínimo por ítem en el selector es 1 para permitir combinaciones.
-        // Si no tiene variantes, el mínimo es el minimo_compra.
+        // Si no tiene variantes, el mínimo es el minimo_compra (= 1 batch de producción).
         $qty_min = $tieneVariantes ? 1 : $minimo_compra;
         $qty_inicial = $qty_min;
         $qty_max = $tieneVariantes ? 9999 : $producto['stock'];
     ?>
+    <?php if($tieneVariantes && $minimo_compra > 1): ?>
+    <div class="info-pill info-pill-green">
+        <i class="fas fa-boxes"></i>
+        <span>Puedes combinar sabores. Mínimo: <strong><?php echo $minimo_compra; ?></strong> uds en total.</span>
+    </div>
+    <?php elseif($minimo_compra > 1): ?>
+    <div class="info-pill">
+        <i class="fas fa-info-circle"></i>
+        <span id="loteInfoTexto">Se vende por lote de producción — cada clic en +/- avanza un lote completo.</span>
+    </div>
+    <?php endif; ?>
+
     <div class="actions-group">
         <div class="quantity-selector">
             <button onclick="updateQty(-1)">-</button>
@@ -175,24 +195,14 @@
                 max="<?php echo $qty_max; ?>"
                 data-minimo="<?php echo $qty_min; ?>"
                 data-minimo-padre="<?php echo $minimo_compra; ?>"
+                data-paquete="<?php echo $unidades_paquete ?: ''; ?>"
+                data-multiplicador="<?php echo $multiplicadorPedidoGrande; ?>"
                 readonly>
             <button onclick="updateQty(1)">+</button>
         </div>
-        
-        <?php if($tieneVariantes && $minimo_compra > 1): ?>
-        <div style="font-size:0.85rem; color:#27ae60; margin-top:8px; margin-bottom:4px; font-weight:600; display:flex; align-items:center; gap:6px; background:#eafaf1; padding:8px 12px; border-radius:6px; border:1px solid #c8e6c9;">
-            <i class="fas fa-boxes"></i>
-            <span>Puedes combinar sabores. Mínimo: <strong><?php echo $minimo_compra; ?></strong> uds en total.</span>
-        </div>
-        <?php elseif($minimo_compra > 1): ?>
-        <div id="minimoContainer" style="font-size:0.78rem; color:#888; margin-top:6px; margin-bottom:4px;">
-            <i class="fas fa-info-circle" style="color:#D98C45;"></i>
-            Mínimo de compra: <strong id="minimoValue"><?php echo $minimo_compra; ?></strong> unidades
-        </div>
-        <?php endif; ?>
 
         <button class="btn-primary add-cart" onclick="addCurrentToCart(<?php echo $producto['id']; ?>)">
-            Añadir al Carrito
+            <i class="fas fa-shopping-basket"></i> Añadir al Carrito
         </button>
     </div>
 
@@ -210,15 +220,26 @@
 
 
         
-        <?php 
+        <?php
             require_once 'includes/config.php';
             $mensaje_ws = "Hola Fermento, estoy interesado en este producto: " . $producto['nombre'];
             $telefono_ws = getConfig('whatsapp_numero', '50239754421');
             $link_ws = "https://wa.me/{$telefono_ws}?text=" . urlencode($mensaje_ws);
         ?>
-        <a href="<?php echo $link_ws; ?>" target="_blank" class="btn-whatsapp">
-            <i class="fab fa-whatsapp"></i> Deseo agendar un pedido grande o especial
-        </a>
+        <script>window.WHATSAPP_NUMERO = <?php echo json_encode($telefono_ws); ?>;
+                 window.PRODUCTO_NOMBRE = <?php echo json_encode($producto['nombre']); ?>;</script>
+
+        <!-- Pedido especial: enlace sutil por defecto; se convierte en aviso
+             destacado cuando la cantidad elegida cruza el umbral de "pedido
+             grande" (ver actualizarInfoLote() en el script). -->
+        <div id="cajaPedidoEspecial" class="caja-pedido-especial">
+            <span class="caja-pedido-especial-texto">
+                <i class="fas fa-star"></i> <span id="textoPedidoEspecial">¿Pedido grande o personalizado?</span>
+            </span>
+            <a href="<?php echo $link_ws; ?>" target="_blank" id="linkPedidoEspecial">
+                <i class="fab fa-whatsapp"></i> Escríbenos por WhatsApp
+            </a>
+        </div>
 
         <div class="tabs-container">
             <div class="tab-headers">
@@ -257,18 +278,65 @@
         evt.currentTarget.className += " active";
     }
     
-    // 2. Control de Cantidad (+ / -) — respeta el mínimo de compra
-    function updateQty(change) {
+    // 2. Control de Cantidad (+ / -) — respeta el mínimo de compra.
+    //    Cuando el producto se vende por lote (data-minimo > 1 y sin combinar
+    //    variantes), cada clic avanza un lote completo en vez de una unidad,
+    //    para que el cliente nunca pueda pedir un lote parcial.
+    function updateQty(dir) {
         const qtyInput = document.getElementById('qty');
         const minimo   = parseInt(qtyInput.getAttribute('data-minimo') || qtyInput.getAttribute('min') || '1');
-        const newVal   = parseInt(qtyInput.value) + change;
+        const paso     = minimo > 1 ? minimo : 1;
+        const newVal   = parseInt(qtyInput.value) + (dir * paso);
         if (newVal >= minimo) {
             qtyInput.value = newVal;
+            actualizarInfoLote();
         }
         // Efecto visual suave cuando intenta bajar del mínimo
-        if (change < 0 && newVal < minimo) {
+        if (dir < 0 && newVal < minimo) {
             qtyInput.classList.add('shake-no');
             setTimeout(() => qtyInput.classList.remove('shake-no'), 400);
+        }
+    }
+
+    // 2b. Info de lote/paquetes y aviso de pedido grande/especial (F: puntos 5/7 IT mundi)
+    function actualizarInfoLote() {
+        const qtyInput = document.getElementById('qty');
+        if (!qtyInput) return;
+
+        const cantidad       = parseInt(qtyInput.value) || 0;
+        const minimoPadre    = parseInt(qtyInput.getAttribute('data-minimo-padre') || '1');
+        const unidadesPaquete = parseInt(qtyInput.getAttribute('data-paquete') || '0');
+        const multiplicador  = parseInt(qtyInput.getAttribute('data-multiplicador') || '3');
+
+        const loteTexto = document.getElementById('loteInfoTexto');
+        if (loteTexto && minimoPadre > 1) {
+            const lotes = Math.max(1, Math.round(cantidad / minimoPadre));
+            let texto = lotes + ' lote' + (lotes > 1 ? 's' : '') + ' de producción (' + cantidad + ' uds.)';
+            if (unidadesPaquete > 0) {
+                const paquetes = Math.round(cantidad / unidadesPaquete);
+                texto += ' — ' + paquetes + ' paquete' + (paquetes > 1 ? 's' : '') + ' de ' + unidadesPaquete + ' uds. c/u';
+            }
+            loteTexto.innerText = texto;
+        }
+
+        // Caja de pedido especial: sutil por defecto, se destaca cuando el
+        // pedido cruza el umbral configurado (multiplicador × mínimo/lote).
+        const caja  = document.getElementById('cajaPedidoEspecial');
+        const link  = document.getElementById('linkPedidoEspecial');
+        const texto = document.getElementById('textoPedidoEspecial');
+        const esPedidoGrande = minimoPadre > 1 && cantidad >= (minimoPadre * multiplicador);
+
+        if (caja) caja.classList.toggle('caja-pedido-especial--grande', esPedidoGrande);
+        if (texto) {
+            texto.innerHTML = esPedidoGrande
+                ? '<strong>¡Pedido grande detectado!</strong> Te atendemos personalizado, coordina por WhatsApp:'
+                : '¿Pedido grande o personalizado?';
+        }
+        if (link && window.WHATSAPP_NUMERO) {
+            const msj = esPedidoGrande
+                ? 'Hola Fermento, deseo agendar un pedido grande o especial: ' + cantidad + ' unidades de ' + (window.PRODUCTO_NOMBRE || 'este producto') + '.'
+                : 'Hola Fermento, estoy interesado en este producto: ' + (window.PRODUCTO_NOMBRE || '');
+            link.href = 'https://wa.me/' + window.WHATSAPP_NUMERO + '?text=' + encodeURIComponent(msj);
         }
     }
 
@@ -338,6 +406,7 @@
                     minValEl.innerText = minCompra;
                     minContainer.style.display = minCompra > 1 ? 'block' : 'none';
                 }
+                actualizarInfoLote();
             }
         } else if (resDiv && (selectedTamano || selectedSabor)) {
             document.getElementById('varianteResumen').innerText = '⚠ Combinación no disponible';
@@ -424,6 +493,7 @@
                     minValEl.innerText = minCompra;
                     minContainer.style.display = minCompra > 1 ? 'block' : 'none';
                 }
+                actualizarInfoLote();
             }
             const hiddenId = document.getElementById('varianteIdSeleccionada');
             if (hiddenId) hiddenId.value = option.value;
@@ -455,6 +525,7 @@
 
     document.addEventListener("DOMContentLoaded", function() {
         updateVariantPrice();
+        actualizarInfoLote();
     });
 
 </script>
