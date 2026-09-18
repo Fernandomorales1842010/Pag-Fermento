@@ -26,7 +26,7 @@ $detalles = $stmt2->fetchAll();
 $multiplicadorPedidoGrande = max(2, (int)getConfig('multiplicador_pedido_grande', 3));
 $esPedidoGrande = false;
 if (!empty($detalles)) {
-    $prodIds = array_unique(array_column($detalles, 'producto_id'));
+    $prodIds = array_values(array_unique(array_column($detalles, 'producto_id')));
     $placeholders = implode(',', array_fill(0, count($prodIds), '?'));
     $stmtMin = $pdo->prepare("SELECT id, minimo_compra FROM productos WHERE id IN ($placeholders)");
     $stmtMin->execute($prodIds);
