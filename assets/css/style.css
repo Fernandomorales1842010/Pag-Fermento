@@ -103,6 +103,9 @@ ul { list-style: none; }
     display: inline-block;
     transition: all 0.3s ease;
 }
+.btn-primary:disabled {
+    background-color: #ddd; color: #999; cursor: not-allowed; transform: none;
+}
 .btn-primary:hover {
     background-color: var(--accent-toast);
     color: var(--white);
@@ -395,6 +398,195 @@ footer {
 }
 
 .actions-group { display: flex; gap: 20px; margin-bottom: 20px; margin-top: 30px; }
+.info-pill + .actions-group { margin-top: 14px; }
+
+/* Franja informativa (mínimo de compra / lote de producción) */
+.info-pill {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.82rem; color: #777; background: #f7f5f0;
+    border-radius: 8px; padding: 9px 14px; margin-top: 14px;
+    line-height: 1.5;
+}
+.info-pill i { color: var(--accent-toast); flex-shrink: 0; }
+.info-pill-green {
+    color: #1b7a43; background: #eafaf1; border: 1px solid #c8e6c9;
+    font-weight: 600;
+}
+.info-pill-green i { color: #27ae60; }
+
+/* Caja de "pedido grande/especial" — sutil por defecto, se destaca cuando
+   la cantidad elegida cruza el umbral configurado (multiplicador × mínimo). */
+.caja-pedido-especial {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    padding: 12px 4px; margin-bottom: 18px;
+    border-top: 1px solid #eee; font-size: 0.85rem; color: #888;
+    transition: 0.25s ease;
+}
+.caja-pedido-especial-texto { display: flex; align-items: center; gap: 8px; }
+.caja-pedido-especial i.fa-star { color: #ddd; transition: 0.25s ease; }
+.caja-pedido-especial #linkPedidoEspecial {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: #666; font-weight: 600; text-decoration: none;
+    padding: 6px 14px; border-radius: 20px; border: 1px solid #ddd;
+    transition: 0.25s ease;
+}
+.caja-pedido-especial #linkPedidoEspecial:hover { border-color: #25D366; color: #1b7a43; }
+
+.caja-pedido-especial--grande {
+    background: linear-gradient(135deg,#eafaf1 0%,#e8f8ee 100%);
+    border: 1.5px solid #25D366; border-top: 1.5px solid #25D366;
+    border-radius: 10px; padding: 14px 18px; color: #1b7a43;
+}
+.caja-pedido-especial--grande i.fa-star { color: #D98C45; }
+.caja-pedido-especial--grande #linkPedidoEspecial {
+    background: #25D366; color: white; border-color: #25D366;
+}
+.caja-pedido-especial--grande #linkPedidoEspecial:hover { background: #20bd5a; color: white; }
+
+/* ── Franja de confianza (reemplaza el bloque grande de "Nuestra Filosofía") */
+.trust-strip { padding: 36px 20px; background: white; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; }
+.trust-strip-grid {
+    display: flex; justify-content: center; align-items: stretch; gap: 0; flex-wrap: wrap;
+}
+.trust-item {
+    display: flex; align-items: center; gap: 14px; padding: 10px 36px;
+    border-right: 1px solid #eee; flex: 1 1 220px; max-width: 320px; justify-content: center;
+}
+.trust-item:last-child { border-right: none; }
+.trust-item i { font-size: 1.5rem; color: var(--accent-toast); flex-shrink: 0; }
+.trust-item strong { display: block; font-size: 0.9rem; color: #1F1F1F; margin-bottom: 2px; }
+.trust-item span { display: block; font-size: 0.78rem; color: #999; }
+
+@media (max-width: 700px) {
+    .trust-strip-grid { flex-direction: column; align-items: center; }
+    .trust-item { border-right: none; border-bottom: 1px solid #eee; width: 100%; max-width: 320px; padding: 16px 0; }
+    .trust-item:last-child { border-bottom: none; }
+}
+
+/* ── Carrusel de "También te puede interesar" ─────────────────────────── */
+.recomendados-section { padding: 60px 20px 80px; }
+.recomendados-header { margin-bottom: 24px; }
+.recomendados-header h2 {
+    font-family: var(--font-serif); font-size: 1.7rem; font-weight: 700;
+    color: var(--text-black); margin-bottom: 4px;
+}
+.recomendados-header p { color: #888; font-size: 0.9rem; }
+
+.recomendados-wrapper { position: relative; display: flex; align-items: center; gap: 12px; }
+
+.recomendados-track {
+    display: flex; gap: 18px; overflow-x: auto; scroll-behavior: smooth;
+    scroll-snap-type: x proximity; padding: 4px 2px 14px; flex: 1;
+    scrollbar-width: thin; scrollbar-color: #ddd transparent;
+}
+.recomendados-track::-webkit-scrollbar { height: 6px; }
+.recomendados-track::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
+.recomendados-track::-webkit-scrollbar-track { background: transparent; }
+
+.recomendado-card {
+    flex: 0 0 180px; scroll-snap-align: start; text-decoration: none; color: inherit;
+    background: white; border: 1px solid #eee; border-radius: 12px; overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.recomendado-card:hover {
+    transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    border-color: var(--accent-toast);
+}
+.recomendado-img-wrap { position: relative; width: 100%; height: 140px; background: #f7f5f0; }
+.recomendado-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.recomendado-badge {
+    position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.75); color: white;
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.3px; padding: 3px 8px; border-radius: 4px;
+}
+.recomendado-card--agotado { opacity: 0.6; filter: grayscale(0.4); }
+.recomendado-info { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 4px; }
+.recomendado-nombre {
+    font-size: 0.87rem; font-weight: 600; color: #333; line-height: 1.35;
+    display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    min-height: 2.4em;
+}
+.recomendado-precio { font-size: 0.95rem; font-weight: 700; color: #D98C45; }
+
+.recomendados-nav {
+    flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%; border: 1px solid #eee;
+    background: white; color: #333; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.recomendados-nav:hover { background: #1F1F1F; color: white; border-color: #1F1F1F; }
+.recomendados-wrapper--inicio .recomendados-nav--prev,
+.recomendados-wrapper--fin .recomendados-nav--next { opacity: 0; pointer-events: none; }
+
+@media (max-width: 600px) {
+    .recomendados-nav { display: none; }
+    .recomendado-card { flex-basis: 150px; }
+    .recomendado-img-wrap { height: 120px; }
+}
+
+/* ── Selector de "cantidad de lotes" (compartido: simple y combinable) ──── */
+.lote-simple { margin-top: 14px; margin-bottom: 6px; }
+.lote-simple label,
+.lote-combinable-header label {
+    display: block; font-weight: 700; font-size: 0.8rem; text-transform: uppercase;
+    letter-spacing: 0.5px; color: #555; margin-bottom: 8px;
+}
+.lotes-stepper {
+    display: inline-flex; align-items: center; border: 1.5px solid #eee;
+    border-radius: 30px; overflow: hidden; background: white;
+}
+.lotes-stepper button {
+    background: white; border: none; width: 42px; height: 42px; font-size: 1.2rem;
+    cursor: pointer; color: #333; transition: 0.15s;
+}
+.lotes-stepper button:hover { background: #f7f5f0; color: var(--accent-toast); }
+.lotes-stepper input {
+    width: 56px; text-align: center; border: none; border-left: 1.5px solid #eee;
+    border-right: 1.5px solid #eee; font-weight: 700; font-size: 1.05rem;
+    height: 42px; -moz-appearance: textfield; color: #1F1F1F;
+}
+.lotes-stepper input::-webkit-outer-spin-button,
+.lotes-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.lote-simple small, .lote-combinable-header small { display: block; margin-top: 8px; color: #999; font-size: 0.78rem; }
+
+.actions-group--sinselector { margin-top: 18px; }
+
+/* ── Repartidor de sabores (lote combinable) ──────────────────────────── */
+.lote-combinable { margin: 20px 0; background: #fdfdfd; border: 1px solid #eee; border-radius: 14px; padding: 20px; }
+.lote-combinable-header { margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px dashed #e5e5e5; }
+
+.repartidor-titulo {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+    font-size: 0.85rem; color: #555; margin-bottom: 14px;
+}
+.repartidor-contador {
+    font-weight: 700; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem;
+    background: #f0f0f0; color: #888; transition: 0.2s;
+}
+.repartidor-contador--ok { background: #eafaf1; color: #27ae60; }
+.repartidor-contador--mal { background: #fdecea; color: #c0392b; }
+
+.repartidor-fila {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid #f3f3f3;
+}
+.repartidor-fila:last-child { border-bottom: none; }
+.repartidor-nombre { font-size: 0.9rem; font-weight: 600; color: #333; }
+
+.repartidor-stepper { display: inline-flex; align-items: center; border: 1.5px solid #eee; border-radius: 24px; overflow: hidden; flex-shrink: 0; }
+.repartidor-stepper button {
+    background: white; border: none; width: 32px; height: 32px; font-size: 1rem; cursor: pointer; color: #333;
+}
+.repartidor-stepper button:hover { background: #f7f5f0; color: var(--accent-toast); }
+.repartidor-stepper input {
+    width: 44px; text-align: center; border: none; border-left: 1.5px solid #eee; border-right: 1.5px solid #eee;
+    font-weight: 700; font-size: 0.92rem; height: 32px; -moz-appearance: textfield;
+}
+.repartidor-stepper input::-webkit-outer-spin-button,
+.repartidor-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+@media (max-width: 480px) {
+    .lotes-stepper button, .lotes-stepper input { height: 38px; }
+    .repartidor-titulo { flex-direction: column; align-items: flex-start; }
+}
 
 /* Tabs */
 .tabs-container { border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px; }
@@ -879,6 +1071,8 @@ footer {
 .cart-item-details { flex-grow: 1; }
 .cart-item-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 5px; }
 .cart-item-price { color: var(--accent-toast); font-weight: 600; font-size: 0.9rem; }
+.cart-item-meta { font-size: 0.72rem; color: #999; margin-top: 3px; line-height: 1.4; }
+.cart-item-meta--warn { color: #c0392b; font-weight: 600; }
 
 /* Controles Pequeños (+ - Basura) */
 .cart-controls {

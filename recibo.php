@@ -237,7 +237,7 @@ include 'includes/header.php';
                     $subt = $d['precio_unitario'] * $d['cantidad'];
                 ?>
                 <div class="item-row">
-                    <img src="<?php echo $img; ?>" class="item-img" alt="Producto">
+                    <img src="<?php echo $img; ?>" class="item-img" alt="Producto" onerror="this.onerror=null;this.src='assets/img/default_pan.png';">
                     <div class="item-details">
                         <span class="item-name"><?php echo htmlspecialchars($d['nombre_producto']); ?></span>
                         <span class="item-qty"><?php echo $d['cantidad']; ?>x Q<?php echo number_format($d['precio_unitario'], 2); ?></span>

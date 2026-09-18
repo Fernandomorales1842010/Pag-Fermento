@@ -96,10 +96,11 @@ function updateCartUI(data) {
         btnCheckout.style.cursor = 'not-allowed';
 
         if (alertaMinimo) {
-            let msgs = data.minimo_violations.map(v =>
-                `<strong>${v.nombre}</strong>: necesitas ${v.minimo} unidades (tienes ${v.actual})`
+            let msgs = data.minimo_violations.map(v => v.parcial
+                ? `<strong>${v.nombre}</strong>: debe ser múltiplo de ${v.minimo} (lote completo) — tienes ${v.actual}`
+                : `<strong>${v.nombre}</strong>: necesitas ${v.minimo} unidades (tienes ${v.actual})`
             ).join('<br>');
-            alertaMinimo.innerHTML = '⚠ Mínimo de compra no cumplido:<br>' + msgs;
+            alertaMinimo.innerHTML = '⚠ Ajusta la cantidad para completar el lote:<br>' + msgs;
             alertaMinimo.style.display = 'block';
         }
     } else if (btnCheckout) {

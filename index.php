@@ -23,14 +23,6 @@
     </div>
 </header>
 
-<section class="section container" style="text-align: center; max-width: 700px;">
-    <h2 class="section-title">Nuestra Filosofía</h2>
-    <p style="font-size: 1.1rem; color: #555;">
-        Creemos que el buen pan requiere solo tres cosas: harina de calidad, tiempo y dedicacion .
-    </p>
-    <div class="divider-icon"><i class="fas fa-bread-slice"></i></div>
-</section>
-
 <section id="catalogo" class="section" style="background-color: var(--bg-cream);">
     <div class="container">
         
@@ -65,7 +57,7 @@
                             <img src="assets/img/<?php echo htmlspecialchars($prod['imagen']); ?>" 
                                  alt="<?php echo htmlspecialchars($prod['nombre']); ?>"
                                  class="card-img-top"
-                                 onerror="this.src='https://via.placeholder.com/300x250?text=Pan'">
+                                 onerror="this.onerror=null;this.src='assets/img/default_pan.png';">
                             
                             <?php if($agotado): ?>
                                 <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 4px 10px; font-size: 0.75rem; font-weight: bold; border-radius: 4px;">
@@ -110,6 +102,32 @@
             </div>
         <?php endif; ?>
 
+    </div>
+</section>
+
+<section class="trust-strip">
+    <div class="container trust-strip-grid">
+        <div class="trust-item">
+            <i class="fas fa-seedling"></i>
+            <div>
+                <strong>Ingredientes de calidad</strong>
+                <span>Solo lo mejor en cada receta</span>
+            </div>
+        </div>
+        <div class="trust-item">
+            <i class="fas fa-bread-slice"></i>
+            <div>
+                <strong>Horneado diario</strong>
+                <span>Frescura garantizada</span>
+            </div>
+        </div>
+        <div class="trust-item">
+            <i class="fas fa-hand-holding-heart"></i>
+            <div>
+                <strong>Hecho a mano</strong>
+                <span>Con tiempo y dedicación</span>
+            </div>
+        </div>
     </div>
 </section>
 

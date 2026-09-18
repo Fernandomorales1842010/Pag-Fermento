@@ -347,7 +347,7 @@ include 'includes/admin_nav.php';
     <div class="product-card">
 
         <div class="product-img-wrap">
-            <img src="../assets/img/<?php echo htmlspecialchars($prod['imagen']); ?>" alt="<?php echo htmlspecialchars($prod['nombre']); ?>">
+            <img src="../assets/img/<?php echo htmlspecialchars($prod['imagen']); ?>" alt="<?php echo htmlspecialchars($prod['nombre']); ?>" onerror="this.onerror=null;this.src='../assets/img/default_pan.png';">
             
             <div class="prod-badge-overlay">
                 <?php if($prod['destacado']): ?>

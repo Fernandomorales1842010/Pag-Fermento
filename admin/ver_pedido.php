@@ -134,7 +134,7 @@ $msj_admin  = "🍞 *Pedido Fermento #" . str_pad($pedido['id'], 6, '0', STR_PAD
 $msj_admin .= "────────────────────────\n";
 $msj_admin .= "👤 *Cliente:* " . $pedido['nombre_cliente'] . "\n";
 $msj_admin .= "📞 *Tel:* " . $pedido['telefono'] . "\n";
-$msj_admin .= "📍 *Dirección:* " . $pedido['direccion'] . "\n";
+$msj_admin .= "📍 *Dirección:* " . $pedido['direccion_envio'] . "\n";
 $msj_admin .= "🚚 *Zona:* " . $zona_nombre_admin . "\n";
 if (!empty($pedido['fecha_envio_programada'])) {
     $msj_admin .= "📅 *Entrega:* " . date('d/m/Y', strtotime($pedido['fecha_envio_programada']));
