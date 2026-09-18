@@ -127,15 +127,19 @@ if (!empty($_SESSION['carrito'])) {
         if ($min < 1) $min = 1;
         
         $sumaCombinada = $cantidadesPorProducto[$pId];
-        $bajo_minimo = ($sumaCombinada < $min);
-        
+        // Se vende por lote completo: el total combinado debe ser múltiplo
+        // exacto del mínimo, no solo "al menos" el mínimo.
+        $esMultiplo = $min > 0 && ($sumaCombinada % $min === 0);
+        $bajo_minimo = ($sumaCombinada < $min) || !$esMultiplo;
+
         if ($bajo_minimo) {
             // Guardamos el nombre base (sin el label de variante) para que no se duplique en la alerta si hay varios
             $nombreBase = explode(' (', $item['nombre'])[0];
             $minimo_violations[$pId] = [
-                'nombre' => $nombreBase,
-                'minimo' => $min,
-                'actual' => $sumaCombinada,
+                'nombre'  => $nombreBase,
+                'minimo'  => $min,
+                'actual'  => $sumaCombinada,
+                'parcial' => $sumaCombinada >= $min,
             ];
         }
 
@@ -150,8 +154,10 @@ if (!empty($_SESSION['carrito'])) {
 
         $borde  = $bajo_minimo ? 'border-left:3px solid #e74c3c;padding-left:8px;' : '';
         $alerta = '';
-        if ($bajo_minimo) {
+        if ($bajo_minimo && $sumaCombinada < $min) {
             $alerta = '<div class="cart-item-meta cart-item-meta--warn">&#9888; Mínimo combinado: ' . $min . ' uds. (llevas ' . $sumaCombinada . ')' . $paquetesTxt . '</div>';
+        } elseif ($bajo_minimo) {
+            $alerta = '<div class="cart-item-meta cart-item-meta--warn">&#9888; Debe ser múltiplo de ' . $min . ' (lote completo). Llevas ' . $sumaCombinada . '.' . $paquetesTxt . '</div>';
         } elseif ($min > 1) {
             $alerta = '<div class="cart-item-meta">Mínimo: ' . $min . ' uds.' . $paquetesTxt . '</div>';
         }

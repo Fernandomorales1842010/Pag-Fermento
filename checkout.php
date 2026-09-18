@@ -65,11 +65,16 @@ foreach ($_SESSION['carrito'] as $key => $item) {
 }
 
 foreach ($agrupadoPorPadre as $pId => $datos) {
-    if ($datos['cantidad_total'] < $datos['minimo']) {
+    // Fermento vende por lote de producción completo: el total combinado
+    // (sumando todos los sabores de un mismo producto) debe ser un múltiplo
+    // exacto del mínimo, no solo "al menos" el mínimo.
+    $esMultiplo = $datos['minimo'] > 0 && ($datos['cantidad_total'] % $datos['minimo'] === 0);
+    if ($datos['cantidad_total'] < $datos['minimo'] || !$esMultiplo) {
         $minimo_violations[] = [
-            'nombre' => $datos['nombre'],
-            'minimo' => $datos['minimo'],
-            'actual' => $datos['cantidad_total'],
+            'nombre'  => $datos['nombre'],
+            'minimo'  => $datos['minimo'],
+            'actual'  => $datos['cantidad_total'],
+            'parcial' => $datos['cantidad_total'] >= $datos['minimo'], // ya alcanzó el mínimo pero no es lote exacto
         ];
     }
 }
@@ -140,13 +145,16 @@ $total_pagar = $subtotal - $descuento + $costoEnvio;
 
     <?php if ($hay_errores_minimo): ?>
     <div style="background:#fff3cd; border:1px solid #f0a500; border-radius:10px; padding:16px 20px; margin-bottom:24px; font-size:0.9rem; color:#856404;">
-        <strong>&#9888; No puedes continuar &mdash; hay productos que no cumplen el mínimo de compra:</strong>
+        <strong>&#9888; No puedes continuar &mdash; hay productos que no completan un lote exacto:</strong>
         <ul style="margin:10px 0 0 18px; line-height:1.9;">
             <?php foreach ($minimo_violations as $v): ?>
                 <li>
-                    <strong><?php echo htmlspecialchars($v['nombre']); ?></strong>: 
-                    mínimo requerido <strong><?php echo $v['minimo']; ?> unidades</strong>, 
-                    tienes <?php echo $v['actual']; ?>.
+                    <strong><?php echo htmlspecialchars($v['nombre']); ?></strong>:
+                    <?php if ($v['parcial']): ?>
+                        se vende en lotes de <strong><?php echo $v['minimo']; ?> unidades</strong>, tienes <?php echo $v['actual']; ?> (te faltan <?php echo $v['minimo'] - ($v['actual'] % $v['minimo']); ?> para completar el siguiente lote, o quita <?php echo $v['actual'] % $v['minimo']; ?> para quedarte en el anterior).
+                    <?php else: ?>
+                        mínimo requerido <strong><?php echo $v['minimo']; ?> unidades</strong>, tienes <?php echo $v['actual']; ?>.
+                    <?php endif; ?>
                     <a href="javascript:history.back();" style="color:#c0392b; font-weight:600; margin-left:6px;">&#8592; Ajustar en el carrito</a>
                 </li>
             <?php endforeach; ?>
@@ -244,14 +252,18 @@ $total_pagar = $subtotal - $descuento + $costoEnvio;
                 if ($min < 1) $min = 1;
                 
                 $sumaCombinada = $cantidadesPorProducto[$pId];
-                $bajo_minimo = ($sumaCombinada < $min);
+                $bajo_minimo = ($sumaCombinada < $min) || ($min > 0 && $sumaCombinada % $min !== 0);
             ?>
                 <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:0.95rem; <?php echo $bajo_minimo ? 'border-left:3px solid #e74c3c; padding-left:8px;' : ''; ?>">
                     <div>
                         <strong><?php echo $item['cantidad']; ?>x</strong> <?php echo htmlspecialchars($item['nombre']); ?>
-                        <?php if ($bajo_minimo): ?>
+                        <?php if ($bajo_minimo && $sumaCombinada < $min): ?>
                             <div style="font-size:0.75rem; color:#c0392b; font-weight:600; margin-top:2px;">
                                 &#9888; Mínimo combinado: <?php echo $min; ?> uds. (Llevas <?php echo $sumaCombinada; ?>)
+                            </div>
+                        <?php elseif ($bajo_minimo): ?>
+                            <div style="font-size:0.75rem; color:#c0392b; font-weight:600; margin-top:2px;">
+                                &#9888; Debe ser múltiplo de <?php echo $min; ?> (lote completo). Llevas <?php echo $sumaCombinada; ?>.
                             </div>
                         <?php elseif ($min > 1): ?>
                             <div style="font-size:0.72rem; color:#888;">Mínimo de la categoría: <?php echo $min; ?></div>
