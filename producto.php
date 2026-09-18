@@ -48,7 +48,41 @@
     $pageTitle = $producto['nombre'] . " | Fermento";
     $page = "producto";
 
-    include 'includes/header.php'; 
+    // ── Productos recomendados (venta cruzada) ────────────────────────────
+    // Prioriza la misma categoría del producto actual; si no alcanza el
+    // cupo, se completa con destacados de otras categorías. Solo productos
+    // disponibles (con stock, o con variantes que puedan estar disponibles).
+    $LIMITE_RECOMENDADOS = 8;
+
+    $stmtRec = $pdo->prepare(
+        "SELECT * FROM productos
+         WHERE categoria = ? AND id != ? AND (stock > 0 OR tiene_variantes = 1)
+         ORDER BY destacado DESC, RAND() LIMIT ?"
+    );
+    $stmtRec->bindValue(1, $producto['categoria']);
+    $stmtRec->bindValue(2, $id_producto, PDO::PARAM_INT);
+    $stmtRec->bindValue(3, $LIMITE_RECOMENDADOS, PDO::PARAM_INT);
+    $stmtRec->execute();
+    $recomendados = $stmtRec->fetchAll(PDO::FETCH_ASSOC);
+
+    if (count($recomendados) < $LIMITE_RECOMENDADOS) {
+        $faltan = $LIMITE_RECOMENDADOS - count($recomendados);
+        $idsExcluir = array_merge([$id_producto], array_column($recomendados, 'id'));
+        $marcadores = implode(',', array_fill(0, count($idsExcluir), '?'));
+
+        $stmtRelleno = $pdo->prepare(
+            "SELECT * FROM productos
+             WHERE id NOT IN ($marcadores) AND (stock > 0 OR tiene_variantes = 1)
+             ORDER BY destacado DESC, RAND() LIMIT ?"
+        );
+        $pos = 1;
+        foreach ($idsExcluir as $idEx) { $stmtRelleno->bindValue($pos++, $idEx, PDO::PARAM_INT); }
+        $stmtRelleno->bindValue($pos, $faltan, PDO::PARAM_INT);
+        $stmtRelleno->execute();
+        $recomendados = array_merge($recomendados, $stmtRelleno->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    include 'includes/header.php';
     include 'includes/nav.php'; 
 ?>
 
@@ -261,6 +295,45 @@
         </div>
     </div>
 </section>
+
+<?php if (!empty($recomendados)): ?>
+<section class="container recomendados-section">
+    <div class="recomendados-header">
+        <h2>También te puede interesar</h2>
+        <p>Completa tu pedido y aprovecha mejor el envío</p>
+    </div>
+
+    <div class="recomendados-wrapper">
+        <button type="button" class="recomendados-nav recomendados-nav--prev" onclick="desplazarRecomendados(-1)" aria-label="Ver anteriores">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <div class="recomendados-track" id="recomendadosTrack">
+            <?php foreach ($recomendados as $rec): ?>
+                <?php
+                    $recAgotado = ((int)$rec['stock'] <= 0 && (int)$rec['tiene_variantes'] === 0);
+                    $recImg     = htmlspecialchars($rec['imagen'] ?: 'default_pan.png');
+                    $recPrecio  = ((int)$rec['tiene_variantes'] > 0 ? 'Desde ' : '') . 'Q' . number_format((float)$rec['precio'], 2);
+                ?>
+                <a href="producto.php?id=<?php echo (int)$rec['id']; ?>" class="recomendado-card <?php echo $recAgotado ? 'recomendado-card--agotado' : ''; ?>">
+                    <div class="recomendado-img-wrap">
+                        <img src="assets/img/<?php echo $recImg; ?>" alt="<?php echo htmlspecialchars($rec['nombre']); ?>" loading="lazy" onerror="this.onerror=null;this.src='assets/img/default_pan.png';">
+                        <?php if ($recAgotado): ?><span class="recomendado-badge">Agotado</span><?php endif; ?>
+                    </div>
+                    <div class="recomendado-info">
+                        <span class="recomendado-nombre"><?php echo htmlspecialchars($rec['nombre']); ?></span>
+                        <span class="recomendado-precio"><?php echo $recPrecio; ?></span>
+                    </div>
+                </a>
+            <?php endforeach; ?>
+        </div>
+
+        <button type="button" class="recomendados-nav recomendados-nav--next" onclick="desplazarRecomendados(1)" aria-label="Ver siguientes">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+</section>
+<?php endif; ?>
 
 <script>
     // 1. Funcionalidad de Pestañas (Tabs)
@@ -523,9 +596,34 @@
         addToCart(prodId, qty, varId || null);
     }
 
+    // 6. Carrusel de productos recomendados
+    function desplazarRecomendados(direccion) {
+        const track = document.getElementById('recomendadosTrack');
+        if (!track) return;
+        const tarjeta = track.querySelector('.recomendado-card');
+        const paso = tarjeta ? (tarjeta.getBoundingClientRect().width + 16) * 2 : 300;
+        track.scrollBy({ left: direccion * paso, behavior: 'smooth' });
+    }
+
+    function actualizarFlechasRecomendados() {
+        const track = document.getElementById('recomendadosTrack');
+        const wrapper = track ? track.closest('.recomendados-wrapper') : null;
+        if (!track || !wrapper) return;
+        const maxScroll = track.scrollWidth - track.clientWidth - 2;
+        wrapper.classList.toggle('recomendados-wrapper--inicio', track.scrollLeft <= 2);
+        wrapper.classList.toggle('recomendados-wrapper--fin', track.scrollLeft >= maxScroll);
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         updateVariantPrice();
         actualizarInfoLote();
+
+        const track = document.getElementById('recomendadosTrack');
+        if (track) {
+            actualizarFlechasRecomendados();
+            track.addEventListener('scroll', actualizarFlechasRecomendados, { passive: true });
+            window.addEventListener('resize', actualizarFlechasRecomendados);
+        }
     });
 
 </script>
