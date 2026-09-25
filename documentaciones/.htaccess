@@ -1,0 +1,3 @@
+# Bloquear acceso web a la carpeta de documentaciones
+Order allow,deny
+Deny from all
