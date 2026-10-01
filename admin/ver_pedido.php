@@ -9,6 +9,7 @@ if (!isset($_GET['id'])) { header("Location: pedidos.php"); exit; }
 $id = (int)$_GET['id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nuevo_estado'])) {
+    require_can('editar_estado_pedido', "ver_pedido.php?id={$id}");
     csrf_verify("ver_pedido.php?id={$id}");
 
     $allowed     = ['pendiente', 'preparando', 'en_camino', 'completado', 'cancelado'];
@@ -324,6 +325,7 @@ window.FERMENTO_LOGO = <?php echo json_encode($_lb64); ?>;
             <div class="side-card-header">
                 <i class="fas fa-exchange-alt" style="color:var(--accent-toast);"></i> Cambiar Estado
             </div>
+            <?php if (can('editar_estado_pedido')): ?>
             <form method="POST">
                 <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                 <div class="status-selector">
@@ -349,6 +351,12 @@ window.FERMENTO_LOGO = <?php echo json_encode($_lb64); ?>;
                     </button>
                 </div>
             </form>
+            <?php else: ?>
+            <div style="padding:16px 22px 20px; color:#aaa; font-size:0.85rem; text-align:center;">
+                <i class="fas fa-lock" style="display:block;font-size:1.5rem;margin-bottom:8px;opacity:0.4;"></i>
+                Solo consulta — sin permisos de edición
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 

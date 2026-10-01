@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-if (!isset($_SESSION['user_rol']) || !in_array($_SESSION['user_rol'], ['admin', 'supervisor'])) {
+if (!isset($_SESSION['user_rol']) || !in_array($_SESSION['user_rol'], ['admin', 'supervisor', 'proveedor'])) {
     // Tiene sesión pero no es admin → redirigir a la tienda con mensaje
     header("Location: ../index.php?msg=acceso_denegado");
     exit;
@@ -84,6 +84,37 @@ $_PERMISOS = [
         'editar_configuracion' => false,
         // Feriados (F1) — sin acceso
         'gestionar_feriados' => false,
+    ],
+    'proveedor' => [
+        // Dashboard — lectura y filtros habilitados
+        'ver_dashboard'        => true,
+        // Pedidos — solo lectura (consulta sin modificar)
+        'ver_pedidos'          => true,
+        'editar_estado_pedido' => false,
+        'modificar_pedido'     => false,
+        // Productos — sin acceso
+        'ver_productos'        => false,
+        'editar_productos'     => false,
+        // Zonas — sin acceso
+        'ver_zonas'            => false,
+        'editar_zonas'         => false,
+        // Categorías — sin acceso
+        'ver_categorias'       => false,
+        'editar_categorias'    => false,
+        // Cupones — sin acceso
+        'ver_cupones'          => false,
+        'editar_cupones'       => false,
+        // Usuarios — sin acceso
+        'ver_usuarios'         => false,
+        'editar_usuarios'      => false,
+        'cambiar_roles'        => false,
+        // Logs — sin acceso
+        'ver_logs'             => false,
+        // Configuración — sin acceso
+        'ver_configuracion'    => false,
+        'editar_configuracion' => false,
+        // Feriados — sin acceso
+        'gestionar_feriados'   => false,
     ],
 ];
 

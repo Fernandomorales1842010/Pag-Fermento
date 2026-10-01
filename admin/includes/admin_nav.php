@@ -20,7 +20,7 @@
             </div>
             <div style="color:rgba(255,255,255,0.4); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.5px;">
                 <?php
-                $rolLabels = ['admin' => 'Administrador', 'supervisor' => 'Supervisor'];
+                $rolLabels = ['admin' => 'Administrador', 'supervisor' => 'Supervisor', 'proveedor' => 'Proveedor'];
                 echo $rolLabels[$_SESSION['user_rol'] ?? 'admin'] ?? ucfirst($_SESSION['user_rol'] ?? 'admin');
                 ?>
             </div>
@@ -36,19 +36,21 @@
             </a>
         </li>
 
-        <!-- Inventario — supervisor solo lectura, admin completo -->
+        <!-- Inventario — oculto para proveedor -->
+        <?php if (can('ver_productos')): ?>
         <li>
             <a href="productos.php" class="<?php echo ($currentPage == 'productos') ? 'active' : ''; ?>">
                 <i class="fas fa-bread-slice"></i>
                 <span>Inventario <?php if (!can('editar_productos')): ?><small style="opacity:.5;font-size:.6rem;">(lectura)</small><?php endif; ?></span>
             </a>
         </li>
+        <?php endif; ?>
 
-        <!-- Pedidos — todos -->
+        <!-- Pedidos — todos, proveedor solo lectura -->
         <li>
             <a href="pedidos.php" class="<?php echo ($currentPage == 'pedidos') ? 'active' : ''; ?>">
                 <i class="fas fa-clipboard-list"></i>
-                <span>Pedidos</span>
+                <span>Pedidos <?php if (!can('editar_estado_pedido')): ?><small style="opacity:.5;font-size:.6rem;">(lectura)</small><?php endif; ?></span>
             </a>
         </li>
 
@@ -60,21 +62,25 @@
             </a>
         </li>
 
-        <!-- Zonas de Envío — supervisor solo lectura -->
+        <!-- Zonas de Envío — oculto para proveedor -->
+        <?php if (can('ver_zonas')): ?>
         <li>
             <a href="zonas.php" class="<?php echo ($currentPage == 'zonas') ? 'active' : ''; ?>">
                 <i class="fas fa-map-marked-alt"></i>
                 <span>Zonas de Envío <?php if (!can('editar_zonas')): ?><small style="opacity:.5;font-size:.6rem;">(lectura)</small><?php endif; ?></span>
             </a>
         </li>
+        <?php endif; ?>
 
-        <!-- Categorías — supervisor solo lectura -->
+        <!-- Categorías — oculto para proveedor -->
+        <?php if (can('ver_categorias')): ?>
         <li>
             <a href="categorias.php" class="<?php echo ($currentPage == 'categorias') ? 'active' : ''; ?>">
                 <i class="fas fa-tags"></i>
                 <span>Categorías <?php if (!can('editar_categorias')): ?><small style="opacity:.5;font-size:.6rem;">(lectura)</small><?php endif; ?></span>
             </a>
         </li>
+        <?php endif; ?>
 
         <!-- Cupones — solo admin -->
         <?php if (can('ver_cupones')): ?>

@@ -34,9 +34,10 @@ $stmt->execute($params);
 $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Estadísticas rápidas
-$total_admins     = $pdo->query("SELECT COUNT(*) FROM usuarios WHERE rol = 'admin'")->fetchColumn();
+$total_admins       = $pdo->query("SELECT COUNT(*) FROM usuarios WHERE rol = 'admin'")->fetchColumn();
 $total_supervisores = $pdo->query("SELECT COUNT(*) FROM usuarios WHERE rol = 'supervisor'")->fetchColumn();
-$total_clientes   = $pdo->query("SELECT COUNT(*) FROM usuarios WHERE rol = 'cliente'")->fetchColumn();
+$total_proveedores  = $pdo->query("SELECT COUNT(*) FROM usuarios WHERE rol = 'proveedor'")->fetchColumn();
+$total_clientes     = $pdo->query("SELECT COUNT(*) FROM usuarios WHERE rol = 'cliente'")->fetchColumn();
 
 // Mensajes
 $msg = $_GET['msg'] ?? '';
@@ -46,7 +47,7 @@ $err = $_GET['err'] ?? '';
 <style>
 .usuarios-stats {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 16px;
     margin-bottom: 25px;
 }
@@ -217,7 +218,7 @@ $err = $_GET['err'] ?? '';
     background: white;
     box-shadow: 0 0 0 3px rgba(217,140,69,0.12);
 }
-.role-selector { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+.role-selector { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
 .role-option {
     border: 2px solid #eee;
     border-radius: 12px;
@@ -290,6 +291,15 @@ $err = $_GET['err'] ?? '';
         </div>
     </div>
     <div class="stat-card-user">
+        <div class="stat-icon-user" style="background:rgba(217,140,69,0.12); color:#D98C45;">
+            <i class="fas fa-truck"></i>
+        </div>
+        <div class="stat-info-user">
+            <div class="num" style="color:#D98C45;"><?php echo $total_proveedores; ?></div>
+            <div class="lbl">Proveedores</div>
+        </div>
+    </div>
+    <div class="stat-card-user">
         <div class="stat-icon-user" style="background:rgba(46,204,113,0.12); color:#27ae60;">
             <i class="fas fa-users"></i>
         </div>
@@ -355,6 +365,7 @@ $err = $_GET['err'] ?? '';
                         $rolConfig = [
                             'admin'      => ['bg'=>'#EBF5FB','color'=>'#2980b9','icon'=>'fas fa-shield-alt','label'=>'Admin'],
                             'supervisor' => ['bg'=>'#F5EEF8','color'=>'#8e44ad','icon'=>'fas fa-user-tie','label'=>'Supervisor'],
+                            'proveedor'  => ['bg'=>'#FDF5E8','color'=>'#D98C45','icon'=>'fas fa-truck','label'=>'Proveedor'],
                             'cliente'    => ['bg'=>'#EAFAF1','color'=>'#27ae60','icon'=>'fas fa-user','label'=>'Cliente'],
                         ];
                         $rc = $rolConfig[$u['rol']] ?? ['bg'=>'#eee','color'=>'#666','icon'=>'fas fa-user','label'=>$u['rol']];
@@ -475,6 +486,11 @@ $err = $_GET['err'] ?? '';
                             <span class="role-icon">🛠️</span>
                             <span class="role-name">Supervisor</span>
                             <span class="role-desc">Catálogo y pedidos</span>
+                        </div>
+                        <div class="role-option" id="role-proveedor" onclick="selectRole('proveedor')">
+                            <span class="role-icon">🚚</span>
+                            <span class="role-name">Proveedor</span>
+                            <span class="role-desc">Solo consultas</span>
                         </div>
                         <div class="role-option" id="role-admin" onclick="selectRole('admin')">
                             <span class="role-icon">🛡️</span>
