@@ -6,14 +6,7 @@ require '../includes/db.php';
 include 'includes/admin_header.php';
 include 'includes/admin_nav.php';
 
-// KPIs Rápidos vía PHP (No filtrables para ver inventario total)
-$agotados = $pdo->query("
-    SELECT COUNT(*) FROM (
-        SELECT id FROM productos WHERE stock <= 0
-        UNION ALL
-        SELECT id FROM producto_variantes WHERE stock <= 0
-    ) as t
-")->fetchColumn();
+
 
 $pendingO = $pdo->query("SELECT COUNT(*) FROM pedidos WHERE estado = 'pendiente'")->fetchColumn();
 ?>
@@ -222,13 +215,7 @@ $pendingO = $pdo->query("SELECT COUNT(*) FROM pedidos WHERE estado = 'pendiente'
             <p id="kpiTicket">Q0.00</p>
         </div>
     </div>
-    <div class="kpi-card" style="<?php echo $agotados > 0 ? 'background:#ffebee;' : ''; ?>">
-        <div class="kpi-icon" style="color: #e74c3c; background: #fadbd8;"><i class="fas fa-exclamation-triangle"></i></div>
-        <div class="kpi-info" style="gap:0;">
-            <h3>Productos Agotados</h3>
-            <p style="<?php echo $agotados > 0 ? 'color:#c0392b;' : ''; ?>"><?php echo $agotados; ?></p>
-        </div>
-    </div>
+
     <div class="kpi-card" onclick="openDrilldown('pedidos_pendientes', '')" style="<?php echo $pendingO > 0 ? 'background:#fff8e1;' : ''; ?>">
         <div class="kpi-icon" style="color: #f39c12; background: #fef5e7;"><i class="fas fa-clock"></i></div>
         <div class="kpi-info" style="gap:0;">
@@ -259,10 +246,7 @@ $pendingO = $pdo->query("SELECT COUNT(*) FROM pedidos WHERE estado = 'pendiente'
         <canvas id="chartTopBar"></canvas>
     </div>
 
-    <div class="card">
-        <h2 style="font-family: 'Merriweather'; font-size: 1.1rem; margin-bottom: 20px;">Alertas de Stock (Mínimos)</h2>
-        <canvas id="chartStockAlert"></canvas>
-    </div>
+
 
 </div>
 
@@ -668,18 +652,7 @@ $pendingO = $pdo->query("SELECT COUNT(*) FROM pedidos WHERE estado = 'pendiente'
                 onClick: (e, activeEls) => handleChartClick(e, activeEls, 'top_producto', data.top_productos.map(x => x.nombre_producto))
             });
 
-            // --- GRÁFICA STOCK ALERT ---
-            renderChart('chartStockAlert', 'bar', {
-                labels: data.stock.map(x => x.nombre),
-                datasets: [{ 
-                    label: 'Unidades', 
-                    data: data.stock.map(x => x.stock), 
-                    backgroundColor: data.stock.map(x => x.stock < 5 ? '#FF6B6B' : x.stock < 20 ? '#FFD93D' : '#6BCB77'),
-                    borderRadius: 6
-                }]
-            }, {
-                onClick: (e, activeEls) => handleChartClick(e, activeEls, 'stock', data.stock.map(x => x.nombre))
-            });
+
             // --- #9 PRODUCTO TOP (KPI card) ---
             const pt = data.producto_top || {};
             const ptEl = document.getElementById('productoTopNombre');
@@ -782,19 +755,7 @@ $pendingO = $pdo->query("SELECT COUNT(*) FROM pedidos WHERE estado = 'pendiente'
                 datasets: [{ label:'Cant.', data: data.slice(0,6).map(r => r[Object.keys(r)[3]]), backgroundColor:['#6C63FF','#FF6B6B','#FFD93D','#6BCB77','#4D96FF','#F4A261'], borderRadius:6 }]
             }),
         },
-        stock: {
-            icon: 'fas fa-box-open',
-            color: '#3498db',
-            bg: '#ebf5fb',
-            title: (v) => `📦 ${v}`,
-            subtitle: 'Información actual del inventario',
-            leftLabel: 'Estado del Producto',
-            chartType: null,
-            buildStats: (data) => [
-                { icon: 'fas fa-tag',    bg:'#fdf5e8', color:'#D98C45', label:'Precio unitario', value: data[0] ? 'Q'+parseFloat(data[0][Object.keys(data[0])[1]]).toFixed(2) : '-' },
-                { icon: 'fas fa-th-large', bg:'#eaf6ff', color:'#3498db', label:'Categoría',       value: data[0] ? data[0][Object.keys(data[0])[2]] : '-' },
-            ],
-        },
+
         categoria: {
             icon: 'fas fa-layer-group',
             color: '#27ae60',
@@ -916,7 +877,6 @@ $pendingO = $pdo->query("SELECT COUNT(*) FROM pedidos WHERE estado = 'pendiente'
             const keys = Object.keys(data[0]);
             const headers = {
                 top_producto: ['#', 'Cliente', 'Fecha', 'Unidades'],
-                stock:        ['Producto', 'Precio', 'Categoría'],
                 categoria:    ['Producto', 'Vendidos', 'Total (Q)'],
             };
             const cols = headers[tipo] || keys;

@@ -57,21 +57,8 @@ try {
         $pdo->commit();
         echo json_encode(['success' => true, 'msg' => '✅ Cambios confirmados. Tu pedido está en preparación.']);
     } else {
-        // Rechazar -> Cancelar el pedido y devolver stock
+        // Rechazar -> Cancelar el pedido
         $pdo->prepare("UPDATE pedidos SET estado = 'cancelado' WHERE id = ?")->execute([$pedido_id]);
-        
-        $stmtItems = $pdo->prepare("SELECT producto_id, variante_id, cantidad FROM detalles_pedido WHERE pedido_id = ?");
-        $stmtItems->execute([$pedido_id]);
-        $items = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
-
-        foreach ($items as $item) {
-            if ($item['variante_id']) {
-                $pdo->prepare("UPDATE producto_variantes SET stock = stock + ? WHERE id = ?")->execute([$item['cantidad'], $item['variante_id']]);
-                $pdo->prepare("UPDATE productos SET stock = (SELECT SUM(stock) FROM producto_variantes WHERE producto_id = productos.id) WHERE id = ?")->execute([$item['producto_id']]);
-            } else {
-                $pdo->prepare("UPDATE productos SET stock = stock + ? WHERE id = ?")->execute([$item['cantidad'], $item['producto_id']]);
-            }
-        }
         
         $pdo->prepare("INSERT INTO pedido_historial (pedido_id, usuario_id, campo_modificado, valor_anterior, valor_nuevo, motivo) VALUES (?, ?, 'estado', 'pendiente_confirmacion', 'cancelado', 'Cliente rechazó los cambios')")->execute([$pedido_id, $_SESSION['user_id']]);
 

@@ -129,15 +129,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_SESSION['carrito'])) {
                         $fecha_envio, $hora_envio]);
         $pedido_id = $pdo->lastInsertId();
 
-        // 2. INSERTAR DETALLES Y RESTAR STOCK ATÓMICAMENTE
+        // 2. INSERTAR DETALLES
         $sql_detalle = "INSERT INTO detalles_pedido (pedido_id, producto_id, nombre_producto, precio_unitario, cantidad, variante_id, variante_nombre) VALUES (?, ?, ?, ?, ?, ?, ?)";
         $stmt_detalle = $pdo->prepare($sql_detalle);
-
-        $sql_stock_prod = "UPDATE productos SET stock = stock - ? WHERE id = ? AND stock >= ?";
-        $stmt_stock_prod = $pdo->prepare($sql_stock_prod);
-
-        $sql_stock_var = "UPDATE producto_variantes SET stock = stock - ? WHERE id = ? AND stock >= ?";
-        $stmt_stock_var = $pdo->prepare($sql_stock_var);
 
         foreach ($_SESSION['carrito'] as $item) {
             $varianteId = isset($item['variante_id']) && $item['variante_id'] ? $item['variante_id'] : null;
@@ -150,11 +144,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_SESSION['carrito'])) {
                 
                 $nombre_completo = $prod_data['prod_nombre'] . ' (' . $prod_data['var_nombre'] . ')';
                 $stmt_detalle->execute([$pedido_id, $item['id'], $nombre_completo, $prod_data['precio'], $item['cantidad'], $varianteId, $prod_data['var_nombre']]);
-                
-                $stmt_stock_var->execute([$item['cantidad'], $varianteId, $item['cantidad']]);
-                if ($stmt_stock_var->rowCount() === 0) {
-                    throw new Exception("Stock insuficiente para: " . $nombre_completo);
-                }
             } else {
                 $stmt_p = $pdo->prepare("SELECT nombre, precio FROM productos WHERE id = ?");
                 $stmt_p->execute([$item['id']]);
@@ -162,11 +151,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_SESSION['carrito'])) {
                 if (!$prod_data) throw new Exception("Producto no encontrado: ID " . $item['id']);
                 
                 $stmt_detalle->execute([$pedido_id, $item['id'], $prod_data['nombre'], $prod_data['precio'], $item['cantidad'], null, null]);
-                
-                $stmt_stock_prod->execute([$item['cantidad'], $item['id'], $item['cantidad']]);
-                if ($stmt_stock_prod->rowCount() === 0) {
-                    throw new Exception("Stock insuficiente para: " . $prod_data['nombre']);
-                }
             }
         }
 

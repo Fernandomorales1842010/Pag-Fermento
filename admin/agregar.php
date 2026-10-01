@@ -184,10 +184,6 @@ $errMsg = [
                 </div>
             </div>
 
-            <div class="field-group" id="mainStockDiv">
-                <label>Stock Inicial</label>
-                <input type="number" name="stock" min="0" value="0" placeholder="0">
-            </div>
 
             <div class="field-group">
                 <label>Mínimo de Compra *</label>
@@ -324,14 +320,12 @@ function toggleVariantes() {
     const container = document.getElementById('variantesContainer');
     const mainPrecioDiv = document.getElementById('mainPrecioDiv');
     const mainPrecioInput = document.getElementById('mainPrecio');
-    const mainStockDiv = document.getElementById('mainStockDiv');
     const mainSkuDiv = document.getElementById('mainSkuDiv');
 
     if (isChecked) {
         container.style.display = 'flex';
         mainPrecioDiv.style.display = 'none';
         mainPrecioInput.removeAttribute('required');
-        mainStockDiv.style.display = 'none';
         mainSkuDiv.style.display = 'none';
         if(document.querySelectorAll('.variante-row').length === 0) {
             addVariante();
@@ -340,7 +334,6 @@ function toggleVariantes() {
         container.style.display = 'none';
         mainPrecioDiv.style.display = 'flex';
         mainPrecioInput.setAttribute('required', 'required');
-        mainStockDiv.style.display = 'flex';
         mainSkuDiv.style.display = 'flex';
     }
 }
@@ -349,14 +342,13 @@ function addVariante() {
     const list = document.getElementById('listaVariantes');
     const row = document.createElement('div');
     row.className = 'variante-row';
-    row.style.cssText = 'display:grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 80px auto; gap:10px; align-items:end; background:white; padding:15px; border-radius:8px; border:1px solid #ddd;';
+    row.style.cssText = 'display:grid; grid-template-columns: 1fr 1fr 1fr 1fr 80px auto; gap:10px; align-items:end; background:white; padding:15px; border-radius:8px; border:1px solid #ddd;';
     
     row.innerHTML = `
         <div class="field-group"><label>Tamaño</label><input type="text" name="var_tamano[]" placeholder="Ej: Pequeño, Mediano, Grande"></div>
         <div class="field-group"><label>Sabor</label><input type="text" name="var_sabor[]" placeholder="Ej: Chocolate, Vainilla"></div>
         <div class="field-group"><label>SKU</label><input type="text" name="var_sku[]" placeholder="Opcional"></div>
         <div class="field-group"><label>Precio (Q) *</label><input type="number" name="var_precio[]" step="0.01" min="0" placeholder="0.00" required></div>
-        <div class="field-group"><label>Stock</label><input type="number" name="var_stock[]" min="0" placeholder="0"></div>
         <div class="field-group"><label>Mínimo</label><input type="number" name="var_minimo[]" min="1" placeholder="Heredar"></div>
         <button type="button" class="btn-new btn-outline" style="padding:10px 15px; border-color:#e74c3c; color:#e74c3c; background:white;" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>
     `;

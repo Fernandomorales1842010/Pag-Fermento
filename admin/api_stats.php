@@ -97,19 +97,8 @@ $stmt = $pdo->prepare(
 $stmt->execute($params);
 $estados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// 8. STOCK ACTUAL (Snapshot - No filtrable por fecha pero ordenado)
-$sqlStock = "
-    SELECT id, nombre, stock, 'simple' as tipo 
-    FROM productos 
-    WHERE stock < 15 AND tiene_variantes = 0
-    UNION ALL
-    SELECT v.id, CONCAT(p.nombre, ' (', v.nombre, ')') as nombre, v.stock, 'variante' as tipo
-    FROM producto_variantes v
-    JOIN productos p ON v.producto_id = p.id
-    WHERE v.stock < 15
-    ORDER BY stock ASC LIMIT 10
-";
-$stock = $pdo->query($sqlStock)->fetchAll(PDO::FETCH_ASSOC);
+// 8. STOCK ACTUAL (Removido por cambio a modelo "Bajo pedido")
+$stock = [];
 
 // 9. PRODUCTO MÁS VENDIDO — en el periodo (unidades + monto)
 $stmt = $pdo->prepare(

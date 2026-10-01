@@ -16,7 +16,6 @@ $nombre      = trim($_POST['nombre'] ?? '');
 $desc        = trim($_POST['descripcion'] ?? '');
 $maridaje    = trim($_POST['maridaje'] ?? '');
 $precio      = (float)($_POST['precio'] ?? 0);
-$stock       = (int)($_POST['stock'] ?? 0);
 $minimo      = max(1, (int)($_POST['minimo_compra'] ?? 1));
 $cat         = trim($_POST['categoria'] ?? '');
 $sku         = trim($_POST['sku'] ?? '');
@@ -32,7 +31,6 @@ $var_ids     = $_POST['var_id']     ?? [];
 $var_tamanos = $_POST['var_tamano'] ?? [];
 $var_sabores = $_POST['var_sabor']  ?? [];
 $var_precios = $_POST['var_precio'] ?? [];
-$var_stocks  = $_POST['var_stock']  ?? [];
 $var_minimos = $_POST['var_minimo'] ?? [];
 
 $var_skus    = $_POST['var_sku']    ?? [];
@@ -42,7 +40,6 @@ $tieneVariantes = count($var_precios) > 0
 
 if ($tieneVariantes) {
     $precio = min(array_map('floatval', $var_precios));
-    $stock  = array_sum(array_map('intval', $var_stocks));
 }
 
 // --- MANEJO DE IMÁGENES ---
@@ -73,7 +70,6 @@ try {
                 descripcion = ?,
                 maridaje = ?,
                 precio = ?,
-                stock = ?,
                 minimo_compra = ?,
                 categoria = ?,
                 imagen = ?,
@@ -88,7 +84,7 @@ try {
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
-        $nombre, $desc, $maridaje ?: null, $precio, $stock, $minimo, $cat,
+        $nombre, $desc, $maridaje ?: null, $precio, $minimo, $cat,
         $img1, $img2, $img3, $destacado, $oferta, $sku, $precio_dist,
         $tieneVariantes ? 1 : 0, $id
     ]);
@@ -107,10 +103,10 @@ try {
     }
 
     $stmtInsertVar = $pdo->prepare(
-        "INSERT INTO producto_variantes (producto_id, tamano, sabor, nombre, precio, stock, minimo_compra, sku) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO producto_variantes (producto_id, tamano, sabor, nombre, precio, minimo_compra, sku) VALUES (?, ?, ?, ?, ?, ?, ?)"
     );
     $stmtUpdateVar = $pdo->prepare(
-        "UPDATE producto_variantes SET tamano=?, sabor=?, nombre=?, precio=?, stock=?, minimo_compra=?, sku=? WHERE id=?"
+        "UPDATE producto_variantes SET tamano=?, sabor=?, nombre=?, precio=?, minimo_compra=?, sku=? WHERE id=?"
     );
 
     for ($i = 0; $i < count($var_precios); $i++) {
@@ -119,7 +115,6 @@ try {
         $vSabor  = trim($var_sabores[$i]  ?? '');
         $vSku    = trim($var_skus[$i]     ?? '');
         $vPrecio = (float)$var_precios[$i];
-        $vStock  = (int)($var_stocks[$i]  ?? 0);
         $vMin    = (isset($var_minimos[$i]) && $var_minimos[$i] !== '') ? (int)$var_minimos[$i] : null;
 
         $partes  = array_filter([$vTamano, $vSabor]);
@@ -127,9 +122,9 @@ try {
 
         if ($vPrecio > 0) {
             if ($vId === 0) {
-                $stmtInsertVar->execute([$id, $vTamano ?: null, $vSabor ?: null, $vNombre, $vPrecio, $vStock, $vMin, $vSku ?: null]);
+                $stmtInsertVar->execute([$id, $vTamano ?: null, $vSabor ?: null, $vNombre, $vPrecio, $vMin, $vSku ?: null]);
             } else {
-                $stmtUpdateVar->execute([$vTamano ?: null, $vSabor ?: null, $vNombre, $vPrecio, $vStock, $vMin, $vSku ?: null, $vId]);
+                $stmtUpdateVar->execute([$vTamano ?: null, $vSabor ?: null, $vNombre, $vPrecio, $vMin, $vSku ?: null, $vId]);
             }
         }
     }

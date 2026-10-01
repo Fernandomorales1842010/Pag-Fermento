@@ -28,18 +28,6 @@ if ($tipo === 'top_producto') {
     $resultado = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-if ($tipo === 'stock') {
-    $sql = "SELECT nombre, precio, categoria FROM (
-                SELECT nombre, precio, categoria FROM productos
-                UNION ALL
-                SELECT CONCAT(p.nombre, ' (', v.nombre, ')') as nombre, v.precio, p.categoria 
-                FROM producto_variantes v JOIN productos p ON v.producto_id = p.id
-            ) as all_prods
-            WHERE nombre = ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$valor]);
-    $resultado = $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
 
 if ($tipo === 'categoria') {
     $sql = "SELECT dp.nombre_producto as Producto, SUM(dp.cantidad) as Vendidos, SUM(dp.cantidad * dp.precio_unitario) as Total

@@ -91,26 +91,10 @@ try {
             // Eliminar
             $pdo->prepare("DELETE FROM detalles_pedido WHERE id = ?")->execute([$id_detalle]);
             $cambios[] = "- Eliminado: " . $det['nombre_producto'] . ($det['variante_nombre'] ? ' ('.$det['variante_nombre'].')' : '') . " (Era: $vieja_cant uds)";
-            
-            // Devolver stock (opcional, en este punto el stock ya está descontado, se devuelve)
-            if ($det['variante_id']) {
-                $pdo->prepare("UPDATE producto_variantes SET stock = stock + ? WHERE id = ?")->execute([$vieja_cant, $det['variante_id']]);
-                $pdo->prepare("UPDATE productos SET stock = (SELECT SUM(stock) FROM producto_variantes WHERE producto_id = productos.id) WHERE id = ?")->execute([$det['producto_id']]);
-            } else {
-                $pdo->prepare("UPDATE productos SET stock = stock + ? WHERE id = ?")->execute([$vieja_cant, $det['producto_id']]);
-            }
+            // Eliminado de la base de datos
         } elseif ($nueva_cant !== $vieja_cant) {
             // Modificar cantidad
-            // TODO: si se desea validar stock al subir cantidad, habría que hacerlo aquí.
-            $diferencia = $nueva_cant - $vieja_cant;
-            
-            // Ajustar stock
-            if ($det['variante_id']) {
-                $pdo->prepare("UPDATE producto_variantes SET stock = stock - ? WHERE id = ?")->execute([$diferencia, $det['variante_id']]);
-                $pdo->prepare("UPDATE productos SET stock = (SELECT SUM(stock) FROM producto_variantes WHERE producto_id = productos.id) WHERE id = ?")->execute([$det['producto_id']]);
-            } else {
-                $pdo->prepare("UPDATE productos SET stock = stock - ? WHERE id = ?")->execute([$diferencia, $det['producto_id']]);
-            }
+            // Modificar cantidad
 
             $pdo->prepare("UPDATE detalles_pedido SET cantidad = ? WHERE id = ?")->execute([$nueva_cant, $id_detalle]);
             $cambios[] = "~ Modificado: " . $det['nombre_producto'] . " de $vieja_cant a $nueva_cant uds";
@@ -131,10 +115,10 @@ try {
 
         // Obtener info del producto/variante
         if ($v_id) {
-            $st_p = $pdo->prepare("SELECT p.nombre, v.nombre as v_nombre, v.precio, v.stock FROM productos p JOIN producto_variantes v ON p.id = v.producto_id WHERE p.id = ? AND v.id = ?");
+            $st_p = $pdo->prepare("SELECT p.nombre, v.nombre as v_nombre, v.precio FROM productos p JOIN producto_variantes v ON p.id = v.producto_id WHERE p.id = ? AND v.id = ?");
             $st_p->execute([$p_id, $v_id]);
         } else {
-            $st_p = $pdo->prepare("SELECT nombre, '' as v_nombre, precio, stock FROM productos WHERE id = ?");
+            $st_p = $pdo->prepare("SELECT nombre, '' as v_nombre, precio FROM productos WHERE id = ?");
             $st_p->execute([$p_id]);
         }
         $pinfo = $st_p->fetch(PDO::FETCH_ASSOC);
@@ -147,13 +131,7 @@ try {
             $cambios[] = "+ Agregado: $nombre_completo x $cant uds";
             $nuevo_subtotal += $pinfo['precio'] * $cant;
 
-            // Restar stock
-            if ($v_id) {
-                $pdo->prepare("UPDATE producto_variantes SET stock = stock - ? WHERE id = ?")->execute([$cant, $v_id]);
-                $pdo->prepare("UPDATE productos SET stock = (SELECT SUM(stock) FROM producto_variantes WHERE producto_id = productos.id) WHERE id = ?")->execute([$p_id]);
-            } else {
-                $pdo->prepare("UPDATE productos SET stock = stock - ? WHERE id = ?")->execute([$cant, $p_id]);
-            }
+            $nuevo_subtotal += $pinfo['precio'] * $cant;
         }
     }
 

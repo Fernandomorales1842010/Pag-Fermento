@@ -55,27 +55,20 @@ $html = '';
 
 if (count($productos) > 0) {
     foreach ($productos as $prod) {
-        $agotado    = ((int)$prod['stock'] <= 0 && (int)$prod['num_variantes'] === 0);
-        $enOferta   = ($prod['oferta'] == 1 && !$agotado);
+        $enOferta   = ($prod['oferta'] == 1);
         $tieneVars  = (int)$prod['num_variantes'] > 0;
-        $opacidad   = $agotado ? 'opacity:0.65;filter:grayscale(1);' : '';
         $precioLabel = ($tieneVars ? 'Desde ' : '') . 'Q' . number_format((float)$prod['precio'], 2);
         $img        = htmlspecialchars($prod['imagen'] ?: 'default_pan.png');
         $nombre     = htmlspecialchars($prod['nombre']);
         $desc       = htmlspecialchars(mb_substr($prod['descripcion'], 0, 90)) . (mb_strlen($prod['descripcion']) > 90 ? '…' : '');
         $id         = (int)$prod['id'];
 
-        if ($agotado) {
-            $btnHtml = "<a href=\"producto.php?id={$id}\" class=\"btn-icon-add btn-disabled\"><i class=\"fas fa-eye\"></i></a>";
-        } else {
-            $btnHtml = "<a href=\"producto.php?id={$id}\" class=\"btn-icon-add\"><i class=\"fas fa-arrow-right\"></i></a>";
-        }
-
-        $badgeAgotado = $agotado  ? '<div class="badge-overlay badge-agotado">AGOTADO</div>' : '';
+        $btnHtml = "<a href=\"producto.php?id={$id}\" class=\"btn-icon-add\"><i class=\"fas fa-arrow-right\"></i></a>";
+        $badgeAgotado = '';
         $badgeOferta  = $enOferta ? '<div class="badge-overlay badge-oferta">★ OFERTA</div>'  : '';
 
         $html .= "
-        <div class=\"product-card-simple fade-in\" onclick=\"window.location.href='producto.php?id={$id}'\" style=\"cursor:pointer; {$opacidad}\">
+        <div class=\"product-card-simple fade-in\" onclick=\"window.location.href='producto.php?id={$id}'\" style=\"cursor:pointer;\">
             <a href=\"producto.php?id={$id}\" style=\"display:block;position:relative;\">
                 <img src=\"assets/img/{$img}\"
                      class=\"card-img-top\"

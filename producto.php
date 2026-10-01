@@ -139,9 +139,6 @@
         
         <div class="price-rating">
             <span class="price" id="displayPrice">Q<?php echo number_format($producto['precio'], 2); ?></span>
-            <div class="rating">
-                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-            </div>
         </div>
 
 
@@ -180,7 +177,7 @@
                             <span class="repartidor-nombre"><?php echo htmlspecialchars($v['sabor'] ?: $v['nombre']); ?></span>
                             <div class="repartidor-stepper">
                                 <button type="button" onclick="ajustarReparto(<?php echo $v['id']; ?>, -1)">-</button>
-                                <input type="number" class="repartidor-qty" min="0" max="<?php echo max(1,(int)$v['stock']); ?>"
+                                <input type="number" class="repartidor-qty" min="0" max="9999"
                                        value="<?php echo $repartoInicial[$v['id']]; ?>"
                                        oninput="recalcularContador()">
                                 <button type="button" onclick="ajustarReparto(<?php echo $v['id']; ?>, 1)">+</button>
@@ -236,7 +233,7 @@
                 <label style="display:block;font-weight:700;margin-bottom:8px;font-size:0.9rem;">Selecciona una opción:</label>
                 <select id="varianteSelect" onchange="updateVariantPrice()" style="width:100%;padding:10px 15px;border-radius:8px;border:1.5px solid #ddd;font-family:'Poppins',sans-serif;">
                     <?php foreach($variantes as $v): ?>
-                        <option value="<?php echo $v['id']; ?>" data-precio="<?php echo $v['precio']; ?>" data-stock="<?php echo $v['stock']; ?>" data-minimo="<?php echo (int)($v['minimo_compra'] ?? 1); ?>">
+                        <option value="<?php echo $v['id']; ?>" data-precio="<?php echo $v['precio']; ?>" data-minimo="<?php echo (int)($v['minimo_compra'] ?? 1); ?>">
                             <?php echo htmlspecialchars($v['nombre']); ?> — Q<?php echo number_format($v['precio'],2); ?>
                         </option>
                     <?php endforeach; ?>
@@ -245,7 +242,6 @@
 
                 <div id="varianteSeleccionada" style="margin-top:12px;padding:10px 14px;background:#fff8ee;border-radius:8px;border:1px solid #f0dfc3;display:none;font-size:0.85rem;">
                     <span id="varianteResumen" style="font-weight:600;color:#D98C45;"></span>
-                    <span id="varianteStock" style="float:right;color:#aaa;"></span>
                 </div>
                 <input type="hidden" id="varianteIdSeleccionada" value="">
             </div>
@@ -256,7 +252,6 @@
 
 
 
-<?php if($producto['stock'] > 0 || $tieneVariantes): ?>
 
     <?php
         $minimo_compra = isset($producto['minimo_compra']) ? (int)$producto['minimo_compra'] : 1;
@@ -267,7 +262,7 @@
         // minimo_compra (= 1 lote de producción).
         $qty_min = ($tieneVariantes && !$esLoteCombinable) ? 1 : $minimo_compra;
         $qty_inicial = $qty_min;
-        $qty_max = ($tieneVariantes && !$esLoteCombinable) ? 9999 : $producto['stock'];
+        $qty_max = 9999;
     ?>
 
     <?php if($esLoteCombinable): ?>
@@ -336,16 +331,7 @@
         </div>
     <?php endif; ?>
 
-<?php else: ?>
 
-    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; text-align: center; border: 1px dashed #ccc; margin-top: 20px;">
-        <i class="fas fa-store-slash" style="font-size: 2rem; color: #999; margin-bottom: 10px;"></i>
-        <h3 style="margin-bottom: 5px;">Producto Agotado</h3>
-        <p style="color: #666; font-size: 0.9rem;">Lo sentimos, este producto no está disponible por el momento.</p>
-        <a href="index.php" class="btn-secondary" style="margin-top: 15px; display: inline-block;">Ver otros panes</a>
-    </div>
-
-<?php endif; ?>
 
 
 
@@ -548,15 +534,12 @@
         if (v) {
             // Precio
             document.getElementById('displayPrice').innerText = 'Q' + parseFloat(v.precio).toFixed(2);
-            // Badge de stock
-            const stockTxt = v.stock > 0 ? v.stock + ' disponibles' : '⚠ Agotado';
             document.getElementById('varianteResumen').innerText =
                 [v.tamano, v.sabor].filter(Boolean).join(' / ') || v.nombre;
-            document.getElementById('varianteStock').innerText = stockTxt;
             if (resDiv) resDiv.style.display = 'block';
             if (hiddenId) hiddenId.value = v.id;
             if (qtyInput) {
-                const stockMax = v.stock > 0 ? v.stock : 9999;
+                const stockMax = 9999;
                 const minCompra = v.minimo_compra ? parseInt(v.minimo_compra) : 1;
                 const esCombinable = (typeof window.VARIANTES_DATA !== 'undefined' && window.VARIANTES_DATA.length > 0);
                 const inputMin = esCombinable ? 1 : minCompra;
@@ -566,7 +549,7 @@
                 qtyInput.dataset.minimo = inputMin;
                 
                 let curVal = parseInt(qtyInput.value) || 1;
-                if (curVal > stockMax && v.stock > 0) qtyInput.value = stockMax;
+                if (curVal > stockMax) qtyInput.value = stockMax;
                 if (curVal < inputMin) qtyInput.value = inputMin;
                 
                 const minContainer = document.getElementById('minimoContainer');
@@ -579,7 +562,6 @@
             }
         } else if (resDiv && (selectedTamano || selectedSabor)) {
             document.getElementById('varianteResumen').innerText = '⚠ Combinación no disponible';
-            document.getElementById('varianteStock').innerText = '';
             resDiv.style.display = 'block';
             if (hiddenId) hiddenId.value = '';
         }

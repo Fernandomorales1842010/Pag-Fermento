@@ -1,7 +1,7 @@
 <?php
 // ajax/cancelar_pedido.php
 // Gap 1+2: Permite al cliente cancelar un pedido pendiente.
-// En la misma transacción: cancela el pedido, restaura el stock
+// En la misma transacción: cancela el pedido
 // y revierte el uso del cupón si se había aplicado uno.
 
 session_start();
@@ -54,35 +54,14 @@ if (strtolower($pedido['estado']) !== 'pendiente') {
     exit;
 }
 
-// ── 5. Cargar detalles del pedido (necesarios para restaurar stock) ─────────
-$stmtDet = $pdo->prepare("SELECT * FROM detalles_pedido WHERE pedido_id = ?");
-$stmtDet->execute([$pedido_id]);
-$detalles = $stmtDet->fetchAll();
-
-// ── 6. Transacción atómica: cancelar + restaurar stock + revertir cupón ────
+// ── 5. Transacción atómica: cancelar + revertir cupón ────
 try {
     $pdo->beginTransaction();
 
     // 6a. Marcar el pedido como cancelado
     $pdo->prepare("UPDATE pedidos SET estado = 'cancelado' WHERE id = ?")->execute([$pedido_id]);
 
-    // 6b. Restaurar stock de cada producto/variante
-    $sqlRestVar  = "UPDATE producto_variantes SET stock = stock + ? WHERE id = ?";
-    $sqlRestProd = "UPDATE productos SET stock = stock + ? WHERE id = ?";
-    $stmtVar  = $pdo->prepare($sqlRestVar);
-    $stmtProd = $pdo->prepare($sqlRestProd);
-
-    foreach ($detalles as $d) {
-        if (!empty($d['variante_id'])) {
-            // Producto con variante: restaurar stock de la variante
-            $stmtVar->execute([$d['cantidad'], $d['variante_id']]);
-        } else {
-            // Producto simple: restaurar stock del producto
-            $stmtProd->execute([$d['cantidad'], $d['producto_id']]);
-        }
-    }
-
-    // 6c. Revertir uso del cupón si se aplicó uno en este pedido
+    // 5b. Revertir uso del cupón si se aplicó uno en este pedido
     if (!empty($pedido['cupon_id'])) {
         $pdo->prepare(
             "UPDATE cupones SET usos_actuales = GREATEST(0, usos_actuales - 1) WHERE id = ?"
@@ -94,7 +73,7 @@ try {
 
     echo json_encode([
         'success' => true,
-        'msg'     => "Tu pedido #{$pedido_id} ha sido cancelado. El stock de los productos ha sido restaurado."
+        'msg'     => "Tu pedido #{$pedido_id} ha sido cancelado exitosamente."
     ]);
 
 } catch (Exception $e) {

@@ -149,10 +149,7 @@ function imgSrc($name) { return $name ? "../assets/img/" . htmlspecialchars($nam
                 </div>
             </div>
 
-            <div class="field-group" id="mainStockDiv" style="<?php echo $tieneVariantes ? 'display:none;' : ''; ?>">
-                <label>Stock Inicial</label>
-                <input type="number" name="stock" min="0" value="<?php echo $p['stock']; ?>">
-            </div>
+
 
             <div class="field-group">
                 <label>Mínimo de Compra *</label>
@@ -190,13 +187,12 @@ function imgSrc($name) { return $name ? "../assets/img/" . htmlspecialchars($nam
                     <div id="listaVariantes" style="display:flex; flex-direction:column; gap:10px;">
                         <?php if ($tieneVariantes): ?>
                             <?php foreach ($variantes as $v): ?>
-                            <div class="variante-row" style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 80px auto; gap:10px; align-items:end; background:white; padding:15px; border-radius:8px; border:1px solid #ddd;">
+                            <div class="variante-row" style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr 80px auto; gap:10px; align-items:end; background:white; padding:15px; border-radius:8px; border:1px solid #ddd;">
                                 <input type="hidden" name="var_id[]" value="<?php echo $v['id']; ?>">
                                 <div class="field-group"><label>Tamaño</label><input type="text" name="var_tamano[]" value="<?php echo htmlspecialchars($v['tamano'] ?? ''); ?>" placeholder="Ej: Grande, Familiar"></div>
                                 <div class="field-group"><label>Sabor</label><input type="text" name="var_sabor[]" value="<?php echo htmlspecialchars($v['sabor'] ?? ''); ?>" placeholder="Ej: Chocolate"></div>
                                 <div class="field-group"><label>SKU</label><input type="text" name="var_sku[]" value="<?php echo htmlspecialchars($v['sku'] ?? ''); ?>" placeholder="Opcional"></div>
                                 <div class="field-group"><label>Precio (Q) *</label><input type="number" name="var_precio[]" step="0.01" min="0" value="<?php echo $v['precio']; ?>" required></div>
-                                <div class="field-group"><label>Stock</label><input type="number" name="var_stock[]" min="0" value="<?php echo $v['stock']; ?>"></div>
                                 <div class="field-group"><label>Mínimo</label><input type="number" name="var_minimo[]" min="1" placeholder="Heredar" value="<?php echo !empty($v['minimo_compra']) ? (int)$v['minimo_compra'] : ''; ?>"></div>
                                 <button type="button" class="btn-new btn-outline" style="padding:10px 15px; border-color:#e74c3c; color:#e74c3c; background:white;" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>
                             </div>
@@ -326,14 +322,12 @@ function toggleVariantes() {
     const container = document.getElementById('variantesContainer');
     const mainPrecioDiv = document.getElementById('mainPrecioDiv');
     const mainPrecioInput = document.getElementById('mainPrecio');
-    const mainStockDiv = document.getElementById('mainStockDiv');
     const mainSkuDiv = document.getElementById('mainSkuDiv');
 
     if (isChecked) {
         container.style.display = 'flex';
         mainPrecioDiv.style.display = 'none';
         mainPrecioInput.removeAttribute('required');
-        mainStockDiv.style.display = 'none';
         mainSkuDiv.style.display = 'none';
         if(document.querySelectorAll('.variante-row').length === 0) {
             addVariante();
@@ -342,7 +336,6 @@ function toggleVariantes() {
         container.style.display = 'none';
         mainPrecioDiv.style.display = 'flex';
         mainPrecioInput.setAttribute('required', 'required');
-        mainStockDiv.style.display = 'flex';
         mainSkuDiv.style.display = 'flex';
     }
 }
@@ -351,7 +344,7 @@ function addVariante() {
     const list = document.getElementById('listaVariantes');
     const row = document.createElement('div');
     row.className = 'variante-row';
-    row.style.cssText = 'display:grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 80px auto; gap:10px; align-items:end; background:white; padding:15px; border-radius:8px; border:1px solid #ddd;';
+    row.style.cssText = 'display:grid; grid-template-columns: 1fr 1fr 1fr 1fr 80px auto; gap:10px; align-items:end; background:white; padding:15px; border-radius:8px; border:1px solid #ddd;';
     
     row.innerHTML = `
         <input type="hidden" name="var_id[]" value="0">
@@ -359,7 +352,6 @@ function addVariante() {
         <div class="field-group"><label>Sabor</label><input type="text" name="var_sabor[]" placeholder="Ej: Chocolate, Vainilla"></div>
         <div class="field-group"><label>SKU</label><input type="text" name="var_sku[]" placeholder="Opcional"></div>
         <div class="field-group"><label>Precio (Q) *</label><input type="number" name="var_precio[]" step="0.01" min="0" placeholder="0.00" required></div>
-        <div class="field-group"><label>Stock</label><input type="number" name="var_stock[]" min="0" placeholder="0"></div>
         <div class="field-group"><label>Mínimo</label><input type="number" name="var_minimo[]" min="1" placeholder="1" value="1"></div>
         <button type="button" class="btn-new btn-outline" style="padding:10px 15px; border-color:#e74c3c; color:#e74c3c; background:white;" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>
     `;
