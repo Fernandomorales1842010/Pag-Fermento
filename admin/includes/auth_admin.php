@@ -53,6 +53,9 @@ $_PERMISOS = [
         'editar_configuracion' => true,
         // Feriados (F1)
         'gestionar_feriados' => true,
+        // Merma
+        'ver_merma'          => true,
+        'crear_merma'        => true,
     ],
     'supervisor' => [
         // Dashboard — solo lectura
@@ -84,6 +87,9 @@ $_PERMISOS = [
         'editar_configuracion' => false,
         // Feriados (F1) — sin acceso
         'gestionar_feriados' => false,
+        // Merma — supervisores pueden crear mermas
+        'ver_merma'          => true,
+        'crear_merma'        => true,
     ],
     'proveedor' => [
         // Dashboard — lectura y filtros habilitados
@@ -115,6 +121,9 @@ $_PERMISOS = [
         'editar_configuracion' => false,
         // Feriados — sin acceso
         'gestionar_feriados'   => false,
+        // Merma — sin acceso
+        'ver_merma'            => false,
+        'crear_merma'          => false,
     ],
 ];
 

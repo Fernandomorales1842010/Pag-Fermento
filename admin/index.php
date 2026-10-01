@@ -180,13 +180,18 @@ $pendingO = $pdo->query("SELECT COUNT(*) FROM pedidos WHERE estado = 'pendiente'
 .kpi-card { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
 .kpi-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
 
-/* Grid para Fila 3 */
 .dashboard-grid-3 {
     display: grid;
     grid-template-columns: 280px 1fr 1fr;
     gap: 25px;
     margin-top: 25px;
     align-items: start;
+}
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 25px;
 }
 @media (max-width: 1024px) {
     .dashboard-grid-3 { grid-template-columns: 1fr; }
@@ -213,6 +218,14 @@ $pendingO = $pdo->query("SELECT COUNT(*) FROM pedidos WHERE estado = 'pendiente'
         <div class="kpi-info" style="gap:0;">
             <h3>Ticket Promedio</h3>
             <p id="kpiTicket">Q0.00</p>
+        </div>
+    </div>
+    
+    <div class="kpi-card">
+        <div class="kpi-icon" style="color:#e74c3c; background: #fdedec;"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="kpi-info" style="gap:0;">
+            <h3>Merma Registrada</h3>
+            <p id="kpiMerma" style="color:#e74c3c;">Q0.00</p>
         </div>
     </div>
 
@@ -604,6 +617,7 @@ $pendingO = $pdo->query("SELECT COUNT(*) FROM pedidos WHERE estado = 'pendiente'
             animateValue('kpiVentas', data.kpi_ventas, true);
             animateValue('kpiPedidos', data.kpi_pedidos, false);
             animateValue('kpiTicket', data.kpi_ticket ?? 0, true);
+            animateValue('kpiMerma', data.merma_total ?? 0, true);
 
             // --- GRÁFICA DE VENTAS LINEA ---
             renderChart('chartVentasLine', 'line', {

@@ -140,6 +140,21 @@ $stmt = $pdo->prepare(
 $stmt->execute($params);
 $horarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// 13. MERMA EN EL PERIODO
+$stmt = $pdo->prepare("SELECT COALESCE(SUM(total_merma), 0) FROM mermas WHERE DATE(fecha) BETWEEN ? AND ?");
+// Nota: no usamos el filtro de costo para mermas
+$stmt->execute([$desde, $hasta]);
+$mermaTotal = $stmt->fetchColumn() ?: 0;
+
+$stmt = $pdo->prepare(
+    "SELECT DATE(fecha) as dia, SUM(total_merma) as total
+     FROM mermas
+     WHERE DATE(fecha) BETWEEN ? AND ?
+     GROUP BY dia ORDER BY dia ASC"
+);
+$stmt->execute([$desde, $hasta]);
+$mermasDiarias = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 $output = json_encode([
     'rango'           => ['desde' => $desde, 'hasta' => $hasta],
     'kpi_ventas'      => $ventasPeriodo,
@@ -153,6 +168,8 @@ $output = json_encode([
     'producto_top'    => $productoTop,
     'ventas_por_anio' => $ventasPorAnio,
     'horarios'        => $horarios,
+    'merma_total'     => $mermaTotal,
+    'mermas_diarias'  => $mermasDiarias,
 ]);
 
 file_put_contents($cache_file, $output);

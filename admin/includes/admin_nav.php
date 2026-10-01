@@ -82,6 +82,16 @@
         </li>
         <?php endif; ?>
 
+        <!-- Merma — admin y supervisor -->
+        <?php if (can('ver_merma')): ?>
+        <li>
+            <a href="merma.php" class="<?php echo ($currentPage == 'merma') ? 'active' : ''; ?>">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Merma</span>
+            </a>
+        </li>
+        <?php endif; ?>
+
         <!-- Cupones — solo admin -->
         <?php if (can('ver_cupones')): ?>
         <li>
