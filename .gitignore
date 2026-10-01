@@ -1,8 +1,8 @@
 # Seguridad
 .env
 
-# Imágenes de productos subidas por usuarios
-assets/img/pan_*
+# Imágenes de productos subidas por usuarios (comentado temporalmente para migrar al servidor)
+# assets/img/pan_*
 
 # Caché del dashboard
 admin/cache/
