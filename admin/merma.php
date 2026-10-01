@@ -198,6 +198,25 @@ include 'includes/admin_nav.php';
 }
 .qty-input:focus { border-color: var(--accent-toast); background: white; }
 
+.btn-add-merma {
+    width: 100%;
+    margin-top: 10px;
+    padding: 8px;
+    background: #fdf5e8;
+    color: var(--accent-toast);
+    border: 1.5px solid #f0c080;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+.btn-add-merma:hover { background: var(--accent-toast); color: white; }
+
 /* Variante selector */
 .var-select {
     width: 100%;
@@ -560,16 +579,18 @@ include 'includes/admin_nav.php';
 
                     <div class="qty-row">
                         <button class="qty-btn" onclick="cambiarQty(<?php echo $prod['id']; ?>, -1)" title="Quitar uno">−</button>
-                        <input class="qty-input" type="number" min="0" value="0"
+                        <input class="qty-input" type="number" min="0" value="1"
                                id="qty-<?php echo $prod['id']; ?>"
-                               oninput="sincronizarCarrito(<?php echo $prod['id']; ?>)"
                                data-pid="<?php echo $prod['id']; ?>"
                                data-nombre="<?php echo htmlspecialchars($prod['nombre']); ?>"
                                data-precio="<?php echo $precio; ?>"
-                               data-simple="<?php echo $esSimple ? '1' : '0'; ?>"
-                               data-variantes='<?php echo htmlspecialchars(json_encode($variantes)); ?>'>
+                               data-simple="<?php echo $esSimple ? '1' : '0'; ?>">
                         <button class="qty-btn" onclick="cambiarQty(<?php echo $prod['id']; ?>, 1)" title="Agregar uno">+</button>
                     </div>
+                    
+                    <button class="btn-add-merma" onclick="agregarAlCarrito(<?php echo $prod['id']; ?>)">
+                        <i class="fas fa-plus"></i> Agregar
+                    </button>
                 </div>
             </div>
             <?php endforeach; ?>
@@ -698,23 +719,23 @@ function actualizarPrecioVariante(pid) {
     const opt = sel.options[sel.selectedIndex];
     const precio = parseFloat(opt.getAttribute('data-precio'));
     document.getElementById('price-' + pid).textContent = 'Q' + precio.toFixed(2);
-    // Si ya está en el carrito, actualizar su precio/variante
-    sincronizarCarrito(pid);
 }
 
 // ── Cambiar cantidad con botones ─────────────────────────────────────────
 function cambiarQty(pid, delta) {
     const input = document.getElementById('qty-' + pid);
-    const val   = Math.max(0, (parseInt(input.value) || 0) + delta);
+    let val = parseInt(input.value) || 0;
+    val += delta;
+    if (val < 1) val = 1; // Mínimo 1 para agregar
     input.value = val;
-    sincronizarCarrito(pid);
 }
 
-// ── Sincronizar carrito al cambiar input ──────────────────────────────────
-function sincronizarCarrito(pid) {
+// ── Agregar al carrito explícitamente ─────────────────────────────────────
+function agregarAlCarrito(pid) {
     const input   = document.getElementById('qty-' + pid);
-    const qty     = Math.max(0, parseInt(input.value) || 0);
-    input.value   = qty;
+    const qty     = parseInt(input.value) || 0;
+    
+    if (qty <= 0) return;
 
     const esSimple = input.getAttribute('data-simple') === '1';
     let varId = null, varNombre = null, precio;
@@ -731,7 +752,10 @@ function sincronizarCarrito(pid) {
 
     const key = pid + '_' + (varId ?? 0);
 
-    if (qty > 0) {
+    // Si ya existe, sumar cantidad
+    if (carrito[key]) {
+        carrito[key].cantidad += qty;
+    } else {
         carrito[key] = {
             prod_id: pid,
             variante_id: varId,
@@ -740,14 +764,14 @@ function sincronizarCarrito(pid) {
             precio: precio,
             cantidad: qty,
         };
-    } else {
-        delete carrito[key];
     }
 
-    // Actualizar borde visual de la card
+    // Resetear input a 1
+    input.value = 1;
+
+    // Actualizar borde visual
     const card = document.getElementById('card-' + pid);
-    const tengoAlgo = Object.keys(carrito).some(k => k.startsWith(pid + '_'));
-    card.classList.toggle('in-cart', tengoAlgo);
+    card.classList.add('in-cart');
 
     renderCarrito();
 }
