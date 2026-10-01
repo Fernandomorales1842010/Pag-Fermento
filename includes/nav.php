@@ -157,7 +157,7 @@
                         <?php echo isset($_SESSION['user_nombre']) ? htmlspecialchars(explode(' ', $_SESSION['user_nombre'])[0]) : 'Mi Cuenta'; ?>
                     </span>
                 </li>
-                <?php if (isset($_SESSION['user_rol']) && in_array($_SESSION['user_rol'], ['admin', 'supervisor'])): ?>
+                <?php if (isset($_SESSION['user_rol']) && in_array($_SESSION['user_rol'], ['admin', 'supervisor', 'proveedor'])): ?>
                 <li>
                     <a href="admin/index.php" style="color: #fff; background: #D98C45; padding: 6px 12px; border-radius: 6px; font-weight: bold; align-items: center; justify-content: center; text-decoration: none;">
                         <i class="fas fa-tools"></i> 
