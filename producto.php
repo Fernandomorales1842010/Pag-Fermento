@@ -73,7 +73,7 @@
 
     $stmtRec = $pdo->prepare(
         "SELECT * FROM productos
-         WHERE categoria = ? AND id != ? AND (stock > 0 OR tiene_variantes = 1)
+         WHERE categoria = ? AND id != ?
          ORDER BY destacado DESC, RAND() LIMIT ?"
     );
     $stmtRec->bindValue(1, $producto['categoria']);
@@ -89,7 +89,7 @@
 
         $stmtRelleno = $pdo->prepare(
             "SELECT * FROM productos
-             WHERE id NOT IN ($marcadores) AND (stock > 0 OR tiene_variantes = 1)
+             WHERE id NOT IN ($marcadores)
              ORDER BY destacado DESC, RAND() LIMIT ?"
         );
         $pos = 1;
@@ -393,7 +393,7 @@
         <div class="recomendados-track" id="recomendadosTrack">
             <?php foreach ($recomendados as $rec): ?>
                 <?php
-                    $recAgotado = ((int)$rec['stock'] <= 0 && (int)$rec['tiene_variantes'] === 0);
+                    $recAgotado = false;
                     $recImg     = htmlspecialchars($rec['imagen'] ?: 'default_pan.png');
                     $recPrecio  = ((int)$rec['tiene_variantes'] > 0 ? 'Desde ' : '') . 'Q' . number_format((float)$rec['precio'], 2);
                 ?>
@@ -624,18 +624,18 @@
             document.getElementById('displayPrice').innerText = 'Q' + price;
             let qtyInput = document.getElementById('qty');
             if(qtyInput) {
-                let stock = parseInt(option.getAttribute('data-stock'));
+                let stock = 9999;
                 let minCompra = parseInt(option.getAttribute('data-minimo') || 1);
                 
                 const esCombinable = (typeof window.VARIANTES_DATA !== 'undefined' && window.VARIANTES_DATA.length > 0);
                 const inputMin = esCombinable ? 1 : minCompra;
 
-                qtyInput.setAttribute('max', stock > 0 ? stock : 9999);
+                qtyInput.setAttribute('max', stock);
                 qtyInput.setAttribute('min', inputMin);
                 qtyInput.setAttribute('data-minimo', inputMin);
                 
                 let curVal = parseInt(qtyInput.value) || 1;
-                if(curVal > stock && stock > 0) qtyInput.value = stock;
+                if(curVal > stock) qtyInput.value = stock;
                 if(curVal < inputMin) qtyInput.value = inputMin;
                 
                 const minContainer = document.getElementById('minimoContainer');

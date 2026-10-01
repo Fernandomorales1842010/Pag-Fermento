@@ -20,7 +20,6 @@ $msgMap = [
 // BÚSQUEDA + FILTROS
 $search   = trim($_GET['buscar'] ?? '');
 $catFilt  = $_GET['cat'] ?? 'todas';
-$stockFilt = $_GET['stock_f'] ?? 'todos'; // 'todos' | 'agotado' | 'bajo' | 'disponible'
 
 $params = [];
 $where  = [];
@@ -33,13 +32,7 @@ if ($catFilt !== 'todas') {
     $where[]  = "categoria = ?";
     $params[] = $catFilt;
 }
-if ($stockFilt === 'agotado') {
-    $where[] = "stock = 0";
-} elseif ($stockFilt === 'bajo') {
-    $where[] = "stock > 0 AND stock < 10";
-} elseif ($stockFilt === 'disponible') {
-    $where[] = "stock >= 10";
-}
+
 $whereSQL = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
 // Paginación
@@ -59,18 +52,6 @@ $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // KPIs globales (sin filtro)
 $totalP     = $pdo->query("SELECT COUNT(*) FROM productos")->fetchColumn();
-$agotados   = $pdo->query("SELECT COUNT(*) FROM productos WHERE stock = 0")->fetchColumn();
-$bajoStock  = $pdo->query("SELECT COUNT(*) FROM productos WHERE stock > 0 AND stock < 10")->fetchColumn();
-$disponibles= $pdo->query("SELECT COUNT(*) FROM productos WHERE stock >= 10")->fetchColumn();
-$valorInv   = $pdo->query("SELECT SUM(precio * stock) FROM productos")->fetchColumn() ?: 0;
-
-// Helper para construir URL de filtro conservando parámetros actuales
-function kpiUrl($stock_f, $current) {
-    $q = $_GET;
-    unset($q['msg']);
-    $q['stock_f'] = ($current === $stock_f) ? 'todos' : $stock_f;  // toggle
-    return '?' . http_build_query($q);
-}
 
 // Categorías únicas para el filtro
 $cats = $pdo->query("SELECT DISTINCT categoria FROM productos ORDER BY categoria")->fetchAll(PDO::FETCH_COLUMN);
@@ -263,71 +244,28 @@ include 'includes/admin_nav.php';
 <!-- KPIs del Inventario (clicables como filtros) -->
 <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px,1fr));">
 
-    <!-- Total: resetea filtro de stock -->
-    <a href="?cat=<?php echo urlencode($catFilt); ?>&buscar=<?php echo urlencode($search); ?>&stock_f=todos"
-       style="text-decoration:none;color:inherit;">
-        <div class="kpi-card <?php echo $stockFilt==='todos'?'filter-active':''; ?>" data-filter="todos">
-            <div class="kpi-icon"><i class="fas fa-bread-slice"></i></div>
-            <div class="kpi-info">
-                <h3>Total Productos</h3>
-                <p><?php echo $totalP; ?></p>
-                <div class="kpi-filter-hint"><?php echo $stockFilt==='todos'?'✓ Filtro activo':'Clic para ver todos'; ?></div>
-            </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><i class="fas fa-bread-slice"></i></div>
+        <div class="kpi-info">
+            <h3>Total Productos</h3>
+            <p><?php echo $totalP; ?></p>
         </div>
-    </a>
-
-    <!-- Agotados -->
-    <a href="<?php echo kpiUrl('agotado', $stockFilt); ?>" style="text-decoration:none;color:inherit;">
-        <div class="kpi-card <?php echo $stockFilt==='agotado'?'filter-active':''; ?>" data-filter="agotado">
-            <div class="kpi-icon" style="color:#e74c3c;background:#ffebee;"><i class="fas fa-times-circle"></i></div>
-            <div class="kpi-info">
-                <h3>Agotados</h3>
-                <p><?php echo $agotados; ?></p>
-                <div class="kpi-filter-hint"><?php echo $stockFilt==='agotado'?'✓ Filtro activo':'Clic para filtrar'; ?></div>
-            </div>
-        </div>
-    </a>
-
-    <!-- Bajo Stock -->
-    <a href="<?php echo kpiUrl('bajo', $stockFilt); ?>" style="text-decoration:none;color:inherit;">
-        <div class="kpi-card <?php echo $stockFilt==='bajo'?'filter-active':''; ?>" data-filter="bajo">
-            <div class="kpi-icon" style="color:#f39c12;background:#fff8e1;"><i class="fas fa-exclamation-triangle"></i></div>
-            <div class="kpi-info">
-                <h3>Bajo Stock</h3>
-                <p><?php echo $bajoStock; ?></p>
-                <div class="kpi-filter-hint"><?php echo $stockFilt==='bajo'?'✓ Filtro activo':'Clic para filtrar'; ?></div>
-            </div>
-        </div>
-    </a>
-
-    <!-- Disponibles -->
-    <a href="<?php echo kpiUrl('disponible', $stockFilt); ?>" style="text-decoration:none;color:inherit;">
-        <div class="kpi-card <?php echo $stockFilt==='disponible'?'filter-active':''; ?>" data-filter="disponible">
-            <div class="kpi-icon" style="color:#27ae60;background:#eafaf1;"><i class="fas fa-check-circle"></i></div>
-            <div class="kpi-info">
-                <h3>Disponibles</h3>
-                <p><?php echo $disponibles; ?></p>
-                <div class="kpi-filter-hint"><?php echo $stockFilt==='disponible'?'✓ Filtro activo':'Clic para filtrar'; ?></div>
-            </div>
-        </div>
-    </a>
+    </div>
 
 </div>
 
 
 <!-- BARRA DE BÚSQUEDA Y FILTROS -->
 <form method="GET" class="search-bar" id="filterForm">
-    <!-- Preservar filtro de stock al buscar/filtrar por categoria -->
-    <input type="hidden" name="stock_f" value="<?php echo htmlspecialchars($stockFilt); ?>">
     <i class="fas fa-search" style="color:#ccc;"></i>
     <input type="text" name="buscar" id="searchInput" value="<?php echo htmlspecialchars($search); ?>"
            class="search-input" placeholder="Buscar por nombre o descripción..."
            autocomplete="off">
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-        <a href="?cat=todas&stock_f=<?php echo $stockFilt; ?>" class="cat-filter-btn <?php echo $catFilt==='todas'?'active':''; ?>">Todos</a>
+        <a href="?cat=todas" class="cat-filter-btn <?php echo $catFilt==='todas'?'active':''; ?>">Todos</a>
         <?php foreach($cats as $c): ?>
-        <a href="?cat=<?php echo urlencode($c); ?>&buscar=<?php echo urlencode($search); ?>&stock_f=<?php echo $stockFilt; ?>"
+        <a href="?cat=<?php echo urlencode($c); ?>&buscar=<?php echo urlencode($search); ?>"
            class="cat-filter-btn <?php echo $catFilt===$c?'active':''; ?>"><?php echo $c; ?></a>
         <?php endforeach; ?>
     </div>
@@ -378,12 +316,7 @@ include 'includes/admin_nav.php';
 
         <div class="product-footer">
             <div class="product-price"><span>Q</span><?php echo number_format($prod['precio'],2); ?></div>
-            <?php
-                $s = (int)$prod['stock'];
-                if($s <= 0) echo '<span class="badge badge-danger">AGOTADO</span>';
-                elseif($s < 10) echo '<span class="badge badge-pending">⚠ '.$s.' uds</span>';
-                else echo '<span class="badge badge-success">'.$s.' uds</span>';
-            ?>
+            <span class="badge badge-success">Bajo Pedido</span>
         </div>
 
     </div>
@@ -393,7 +326,7 @@ include 'includes/admin_nav.php';
 <?php if($totalPaginas > 1): ?>
 <div style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:25px;margin-bottom:30px;flex-wrap:wrap;">
     <?php
-        $baseUrl = "?cat=".urlencode($catFilt)."&buscar=".urlencode($search)."&stock_f=".urlencode($stockFilt);
+        $baseUrl = "?cat=".urlencode($catFilt)."&buscar=".urlencode($search);
         
         $startPage = max(1, $page - 2);
         $endPage = min($totalPaginas, $page + 2);
